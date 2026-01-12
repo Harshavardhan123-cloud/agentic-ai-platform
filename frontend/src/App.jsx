@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
+import Home from './Home'
 import ProblemSolver from './ProblemSolver'
 import Dashboard from './Dashboard'
 import './App.css'
 
 function App() {
-    const [activeTab, setActiveTab] = useState('problem-solver')
+    const [activeTab, setActiveTab] = useState('home')
 
     return (
         <div className="app">
             {/* Navigation */}
             <nav className="main-nav">
-                <div className="nav-brand">
+                <div className="nav-brand" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
                     <span className="brand-icon">🤖</span>
                     <span className="brand-text">Agentic AI Platform</span>
                 </div>
@@ -34,6 +34,7 @@ function App() {
 
             {/* Content */}
             <main className="main-content">
+                {activeTab === 'home' && <Home onStart={setActiveTab} />}
                 {activeTab === 'problem-solver' && <ProblemSolver />}
                 {activeTab === 'dashboard' && <Dashboard />}
             </main>

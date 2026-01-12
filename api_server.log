@@ -1,0 +1,135 @@
+✅ WebSocket server initialized
+✅ Agentic Platform initialized
+✅ Agentic Platform integrated with API server
+💡 Using built-in complete code solutions (OpenAI quota exhausted)
+============================================================
+🚀 Agentic AI Platform API Server
+============================================================
+📡 API Server: http://localhost:5000
+🔄 WebSocket Server: http://localhost:5000 (Socket.IO)
+📊 Platform Status: ✅ Available
+
+📚 API Endpoints:
+  Problem Solver:
+    POST /api/generate-code - Generate complete code solution
+    POST /api/analyze-complexity - Analyze code complexity
+    POST /api/suggest-optimization - Generate optimization hints
+  Platform:
+    GET  /api/platform/stats
+    GET  /api/health
+  Conversations:
+    POST /api/conversations - Create conversation
+    GET  /api/conversations/<id> - Get conversation
+    POST /api/conversations/<id>/translate - Execute translation
+  Gateway & Guardrails:
+    GET  /api/gateway/stats - Gateway statistics
+    GET  /api/guardrails/stats - Guardrails statistics
+
+✨ Real-time features enabled via WebSocket
+   Connect to: ws://localhost:5000
+============================================================
+ * Serving Flask app 'agentic_api_server'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.24.197:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 622-437-185
+127.0.0.1 - - [12/Jan/2026 21:20:00] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:20:01] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:24:49] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:24:49] "[35m[1mPOST /api/generate-code HTTP/1.1[0m" 500 -
+127.0.0.1 - - [12/Jan/2026 21:25:36] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:25:36] "[35m[1mPOST /api/generate-code HTTP/1.1[0m" 500 -
+127.0.0.1 - - [12/Jan/2026 21:25:43] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:25:43] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:25:43] "OPTIONS /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:25:43] "POST /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:30:58] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:30:58] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:30:58] "OPTIONS /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:30:58] "POST /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:31:50] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:31:50] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:31:50] "OPTIONS /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:31:50] "POST /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:37:37] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:37:37] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:37:37] "OPTIONS /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:37:37] "POST /api/analyze-complexity HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:42:49] "OPTIONS /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:42:49] "[35m[1mPOST /api/generate-code HTTP/1.1[0m" 500 -
+127.0.0.1 - - [12/Jan/2026 21:43:36] "[35m[1mPOST /api/generate-code HTTP/1.1[0m" 500 -
+ * Detected change in '/home/admin1/Desktop/Code_Agent/code-translator-agent/backend/code_generator.py', reloading
+✅ WebSocket server initialized
+✅ Agentic Platform initialized
+✅ Agentic Platform integrated with API server
+💡 Using built-in complete code solutions (OpenAI quota exhausted)
+============================================================
+🚀 Agentic AI Platform API Server
+============================================================
+📡 API Server: http://localhost:5000
+🔄 WebSocket Server: http://localhost:5000 (Socket.IO)
+📊 Platform Status: ✅ Available
+
+📚 API Endpoints:
+  Problem Solver:
+    POST /api/generate-code - Generate complete code solution
+    POST /api/analyze-complexity - Analyze code complexity
+    POST /api/suggest-optimization - Generate optimization hints
+  Platform:
+    GET  /api/platform/stats
+    GET  /api/health
+  Conversations:
+    POST /api/conversations - Create conversation
+    GET  /api/conversations/<id> - Get conversation
+    POST /api/conversations/<id>/translate - Execute translation
+  Gateway & Guardrails:
+    GET  /api/gateway/stats - Gateway statistics
+    GET  /api/guardrails/stats - Guardrails statistics
+
+✨ Real-time features enabled via WebSocket
+   Connect to: ws://localhost:5000
+============================================================
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 622-437-185
+127.0.0.1 - - [12/Jan/2026 21:45:08] "POST /api/generate-code HTTP/1.1" 200 -
+127.0.0.1 - - [12/Jan/2026 21:45:21] "POST /api/generate-code HTTP/1.1" 200 -
+ * Detected change in '/home/admin1/Desktop/Code_Agent/code-translator-agent/backend/agentic_api_server.py', reloading
+✅ WebSocket server initialized
+✅ Agentic Platform initialized
+✅ Agentic Platform integrated with API server
+💡 Using built-in complete code solutions (OpenAI quota exhausted)
+============================================================
+🚀 Agentic AI Platform API Server
+============================================================
+📡 API Server: http://localhost:5000
+🔄 WebSocket Server: http://localhost:5000 (Socket.IO)
+📊 Platform Status: ✅ Available
+
+📚 API Endpoints:
+  Problem Solver:
+    POST /api/generate-code - Generate complete code solution
+    POST /api/analyze-complexity - Analyze code complexity
+    POST /api/suggest-optimization - Generate optimization hints
+  Platform:
+    GET  /api/platform/stats
+    GET  /api/health
+  Conversations:
+    POST /api/conversations - Create conversation
+    GET  /api/conversations/<id> - Get conversation
+    POST /api/conversations/<id>/translate - Execute translation
+  Gateway & Guardrails:
+    GET  /api/gateway/stats - Gateway statistics
+    GET  /api/guardrails/stats - Guardrails statistics
+
+✨ Real-time features enabled via WebSocket
+   Connect to: ws://localhost:5000
+============================================================
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 622-437-185

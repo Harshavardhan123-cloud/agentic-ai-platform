@@ -1,0 +1,123 @@
+"""
+Visualization Generator Service
+
+Generates execution traces for algorithms using LLM.
+"""
+
+import json
+from typing import Dict, Any, List
+
+class VisualizationGenerator:
+    """Generates execution traces for algorithm visualization."""
+    
+    def __init__(self, llm_gateway):
+        self.llm_gateway = llm_gateway
+        
+    def generate_trace(self, code: str, language: str, problem_type: str = "generic") -> Dict[str, Any]:
+        """
+        Generate a step-by-step execution trace for the code.
+        
+        Returns:
+            JSON object with:
+            - initial_state: dict of variables
+            - steps: list of {description, line_number, variables}
+            - visualization_type: 'array', 'graph', 'matrix', or 'generic'
+        """
+        if not self.llm_gateway:
+            return {"error": "LLM Gateway not available"}
+            
+        system_prompt = """You are an Algorithm Visualizer. 
+Your goal is to simulate the execution of the provided code for a robust sample input and produce a step-by-step JSON execution trace.
+
+OUTPUT FORMAT (Strict JSON):
+{
+  "visualization_type": "array" | "matrix" | "graph" | "generic",
+  "data_structure_name": "name of the main data structure being modified (e.g. 'arr', 'matrix')",
+  "initial_label": "Initial State",
+  "steps": [
+    {
+      "step_id": 1,
+      "description": "Explanation of what happened in this step",
+      "highlighted_lines": [line numbers involved],
+      "variables": {
+        "variable_name": "current_value",
+        "arr": [current, array, state] 
+      }
+    }
+  ]
+}
+
+RULES:
+1. Choose a simple but non-trivial input (e.g. for sorting, use [5, 2, 9, 1, 5]).
+2. Trace enough steps to show the algorithm working (max 20 steps).
+3. If the algorithm is Sorting or searching, use "visualization_type": "array".
+4. 'variables' MUST include the main data structure being modified.
+5. Keep descriptions short.
+"""
+
+        user_prompt = f"""
+Language: {language}
+Problem Type: {problem_type}
+
+Code:
+{code}
+
+Generate the JSON execution trace now.
+"""
+
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+            
+            response = self.llm_gateway.completion(
+                messages=messages,
+                temperature=0.1,  # Low temperature for deterministic JSON
+                max_tokens=2500
+            )
+            
+            content = response['choices'][0]['message']['content']
+            
+            # Robust JSON extraction
+            try:
+                # 1. Try stripping
+                json_data = json.loads(content.strip())
+                return json_data
+            except json.JSONDecodeError:
+                pass
+
+            # 2. Try extracting from code blocks
+            import re
+            json_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
+            if not json_match:
+                json_match = re.search(r'```\s*(\{.*?\})\s*```', content, re.DOTALL)
+            if not json_match:
+                # 3. Try finding first { and last }
+                json_match = re.search(r'(\{.*\})', content, re.DOTALL)
+                
+            if json_match:
+                json_str = json_match.group(1)
+                # Cleanup potential trailing commas (simple check)
+                json_str = re.sub(r',\s*\}', '}', json_str)
+                json_str = re.sub(r',\s*\]', ']', json_str)
+                return json.loads(json_str)
+            
+            raise ValueError("No valid JSON found in response")
+            
+        except Exception as e:
+            print(f"Visualization generation error: {e}")
+            # Fallback trace
+            return {
+                "visualization_type": "generic",
+                "data_structure_name": "error",
+                "initial_label": "Visualization Error",
+                "steps": [
+                    {
+                        "step_id": 1,
+                        "description": f"Failed to generate visualization trace: {str(e)}",
+                        "highlighted_lines": [],
+                        "variables": {"error": "Try again or use a simpler algorithm"}
+                    }
+                ]
+            } 

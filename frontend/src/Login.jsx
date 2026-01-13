@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import './ProblemSolver.css'; // Reuse existing styles for consistency
 
-const Login = () => {
+const Login = ({ onSwitchToSignup }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');

@@ -1,43 +1,45 @@
 /*-----------------------------------*\
-  #theme.css - SOFT AESTHETIC MINIMAL
+  #theme.css - OBSIDIAN MINIMAL
 \*-----------------------------------*/
 
 :root {
-    /* -- PALETTE: SOFT MIDNIGHT -- */
-    --bg-app: #0b0c15;
-    /* Deepest Navy-Charcoal */
-    --bg-glass: rgba(255, 255, 255, 0.03);
-    --bg-glass-hover: rgba(255, 255, 255, 0.05);
+    /* -- PALETTE: OBSIDIAN -- */
+    --bg-app: #030712;
+    /* Gray 950 - Almost black */
+    --bg-panel: #111827;
+    /* Gray 900 */
+    --bg-glass: rgba(17, 24, 39, 0.7);
 
-    --border-subtle: rgba(255, 255, 255, 0.06);
-    --border-focus: rgba(129, 140, 248, 0.4);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-highlight: rgba(255, 255, 255, 0.15);
 
-    --text-primary: #f8fafc;
-    /* Slate 50 */
-    --text-secondary: #94a3b8;
-    /* Slate 400 */
-    --text-tertiary: #64748b;
-    /* Slate 500 */
+    --text-primary: #f9fafb;
+    /* Gray 50 */
+    --text-secondary: #9ca3af;
+    /* Gray 400 */
+    --text-tertiary: #6b7280;
+    /* Gray 500 */
 
-    /* Soft Pastels */
-    --accent-primary: #818cf8;
-    /* Soft Indigo */
-    --accent-hover: #a5b4fc;
-    /* Lighter Indigo */
-    --accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+    /* Precise Accents */
+    --accent-primary: #6366f1;
+    /* Indigo 500 */
+    --accent-hover: #4f46e5;
+    /* Indigo 600 */
+    --accent-glow: rgba(99, 102, 241, 0.15);
 
-    --glass-blur: blur(20px);
-    --shadow-soft: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 20px rgba(129, 140, 248, 0.15);
+    --glass-blur: blur(16px);
+    --shadow-card: 0 0 0 1px var(--border-subtle), 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+    --shadow-input: 0 1px 2px rgba(0, 0, 0, 0.05);
 
     /* -- TYPOGRAPHY -- */
-    --font-sans: 'Inter', sans-serif;
-    --font-display: 'Outfit', sans-serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Outfit', system-ui, sans-serif;
 
-    /* -- SPACING -- */
-    --radius-pill: 9999px;
-    --radius-lg: 16px;
-    --radius-md: 12px;
+    /* -- SPACING & RADIUS -- */
+    --radius-full: 9999px;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --radius-sm: 6px;
 }
 
 *,
@@ -54,28 +56,21 @@ body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    /* Subtle mesh gradient background */
+    /* Very subtle spot gradient */
     background-image:
-        radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 25%);
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
 }
 
-/* -- COMPONENT: AESTHETIC GLASS CARD -- */
+/* -- COMPONENT: MINIMAL CARD -- */
 .glass-card,
 .content-card {
     background: var(--bg-glass);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-card);
     padding: 32px;
-    transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: var(--shadow-soft), var(--shadow-glow);
+    /* Increased padding */
 }
 
 /* -- FORM INPUTS -- */
@@ -84,18 +79,19 @@ body {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 12px 16px;
+    padding: 10px 14px;
+    /* Slightly tighter */
     color: var(--text-primary);
     font-family: var(--font-sans);
     font-size: 0.95rem;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .form-input:focus {
     outline: none;
     background: rgba(0, 0, 0, 0.3);
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.1);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .form-input::placeholder {
@@ -109,37 +105,33 @@ body {
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 12px 20px;
+    padding: 10px 16px;
     font-family: var(--font-sans);
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border-radius: var(--radius-md);
-    /* Softer radius */
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 
-    /* Soft Gradient Default */
-    background: var(--accent-gradient);
+    /* Flat Minimal Default */
+    background: var(--accent-primary);
     color: white;
-    border: none;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .form-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-    filter: brightness(1.05);
+    background: var(--accent-hover);
+    transform: translateY(-1px);
 }
 
 .form-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-    filter: grayscale(1);
+    background: var(--text-tertiary);
 }
 
-/* Secondary Button */
+/* Secondary Button (Outline) */
 .form-btn.secondary {
     background: transparent;
     border: 1px solid var(--border-subtle);
@@ -148,9 +140,9 @@ body {
 }
 
 .form-btn.secondary:hover {
-    background: var(--bg-glass-hover);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--border-highlight);
 }
 
 /* -- TYPOGRAPHY -- */
@@ -158,22 +150,23 @@ body {
     font-family: var(--font-display);
     font-weight: 600;
     color: var(--text-primary);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
 }
 
 .h3 {
     font-family: var(--font-display);
     font-weight: 500;
     color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
 .text-light {
     color: var(--text-secondary);
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .separator {
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+    background: var(--border-subtle);
     margin: 24px 0;
 }

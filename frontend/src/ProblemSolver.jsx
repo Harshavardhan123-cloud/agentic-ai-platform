@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import AlgorithmVisualizer from './AlgorithmVisualizer'
 import { useAuth } from './AuthContext'
 import Logo from './Logo'
+import UserAvatar from './UserAvatar'
 import './ProblemSolver.css'
 
 const ProblemSolver = () => {
@@ -178,8 +179,23 @@ const ProblemSolver = () => {
         }
     }
 
+    const { user, getAuthHeader, logout } = useAuth() // Added user and logout
+
+    // ... existing code ...
+
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px', minHeight: '100vh', backgroundColor: 'var(--bg-app)' }}>
+            {/* Top Bar */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-primary)' }}>{user?.username || 'Guest'}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', cursor: 'pointer' }} onClick={logout}>Sign Out</div>
+                    </div>
+                    <UserAvatar username={user?.username || 'G'} size="medium" />
+                </div>
+            </div>
+
             {/* Header */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px', textAlign: 'center' }}>
                 <div style={{ marginBottom: '20px' }}>

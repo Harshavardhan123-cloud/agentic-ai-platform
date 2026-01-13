@@ -575,8 +575,10 @@ if __name__ == '__main__':
     print("=" * 60)
     
     # Run with Socket.IO support
+    # Run with Socket.IO support
+    port = int(os.environ.get("PORT", 5000))
     if PLATFORM_AVAILABLE and ws_server.socketio:
-        ws_server.socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+        ws_server.socketio.run(app, debug=False, host='0.0.0.0', port=port)
     else:
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=False, host='0.0.0.0', port=port)
 

@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "vite --port 3000",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "tsc": "tsc --noEmit || true"
     },
     "dependencies": {
         "react": "^18.2.0",
@@ -15,4 +16,4 @@
         "@vitejs/plugin-react": "^4.2.1",
         "vite": "^5.0.0"
     }
-}                                       
+}

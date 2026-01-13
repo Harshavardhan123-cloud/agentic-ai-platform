@@ -109,10 +109,15 @@ Start with: "Here's how this code works..."
                 script = "Here is a summary of the solution. The code implements an optimized algorithm to solve the problem efficiently. Please review the visual explanation for more details."
 
             print("🎤 [AudioAgent] LLM response received/handled.")
-            if not script:
-                script = "Code explanation unavailable."
-            if not script:
-                raise ValueError("Empty script from LLM")
+            if not script or script.startswith("Error:") or script == "Code explanation unavailable.":
+                print(f"⚠️ [AudioAgent] Skipping audio generation due to invalid script content: '{script[:50]}...'")
+                return {
+                    "success": True,
+                    "audio_url": None,
+                    "script": script,
+                    "provider": "llm_text_only",
+                    "warning": "Audio skipped (Error in script)."
+                }
 
             print(f"🎤 [AudioAgent] Script generated ({len(script)} chars). Generating audio with gTTS...")
             

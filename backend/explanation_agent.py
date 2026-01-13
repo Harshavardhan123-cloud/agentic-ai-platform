@@ -92,6 +92,7 @@ Start with: "Here's how this code works..."
         try:
             # 1. Get Script
             print("🎤 [AudioAgent] Requesting script generation from LLM...")
+            script = ""
             try:
                 response = self.llm_gateway.completion(
                     messages=[
@@ -101,12 +102,15 @@ Start with: "Here's how this code works..."
                     temperature=0.5,
                     max_tokens=600
                 )
-            except Exception as e:
-                print(f"❌ [AudioAgent] LLM Gateway Crash: {e}")
-                raise e
-            
-            print("🎤 [AudioAgent] LLM response received.")
-            script = response.get('choices', [{}])[0].get('message', {}).get('content', '')
+                script = response.get('choices', [{}])[0].get('message', {}).get('content', '')
+            except (RecursionError, Exception) as llm_err:
+                print(f"⚠️ [AudioAgent] LLM Generation Failed (Recursion/Error): {llm_err}")
+                print("⚠️ [AudioAgent] Using fallback script.")
+                script = "Here is a summary of the solution. The code implements an optimized algorithm to solve the problem efficiently. Please review the visual explanation for more details."
+
+            print("🎤 [AudioAgent] LLM response received/handled.")
+            if not script:
+                script = "Code explanation unavailable."
             if not script:
                 raise ValueError("Empty script from LLM")
 

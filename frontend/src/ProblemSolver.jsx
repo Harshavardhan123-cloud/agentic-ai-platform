@@ -67,7 +67,8 @@ const ProblemSolver = () => {
                 setError(data.error || 'Code generation failed')
             }
         } catch (err) {
-            setError('Connection error. Make sure backend is running.')
+            console.error(err)
+            setError(`Connection error. Ensure backend is running at ${API_BASE_URL}`)
         } finally {
             setLoading(false)
         }
@@ -75,7 +76,7 @@ const ProblemSolver = () => {
 
     const analyzeComplexity = async (code, lang) => {
         try {
-            const response = await fetch(`${API_URL}/api/analyze-complexity`, {
+            const response = await fetch(`${API_BASE_URL}/api/analyze-complexity`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

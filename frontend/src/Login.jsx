@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import './ProblemSolver.css'; // Reuse existing styles for consistency
 
@@ -8,7 +7,6 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
-    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,9 +14,7 @@ const Login = () => {
 
         const result = await login(username, password);
 
-        if (result.success) {
-            navigate('/');
-        } else {
+        if (!result.success) {
             setError(result.error);
         }
     };

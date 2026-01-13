@@ -58,9 +58,22 @@ if PLATFORM_AVAILABLE:
     # Initialize AG2 Dashboard
     dashboard = get_dashboard(platform.gateway)
     
+    # Initialize AG2 Dashboard
+    dashboard = get_dashboard(platform.gateway)
+    
     print("✅ Agentic Platform integrated with API server")
     print("🤖 Using LLM for AI-powered code generation")
     print("📊 AG2 Dashboard initialized")
+
+    # DEBUG: Print loaded keys (Safety first: only show presence or prefix)
+    print("\n🔐 Environment Variable Check:")
+    for key in ['GROQ_API_KEY', 'TOGETHER_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY']:
+        val = os.getenv(key)
+        if val:
+            print(f"   - {key}: FOUND (Starts with {val[:4]}...)")
+        else:
+            print(f"   - {key}: MISSING ❌")
+    print("\n")
 
 
 

@@ -7,7 +7,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sys
 import os
+from dotenv import load_dotenv
 from pathlib import Path
+
+# Load environment variables
+load_dotenv()
 
 # Add to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

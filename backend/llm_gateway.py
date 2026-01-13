@@ -78,7 +78,7 @@ class LLMGateway:
             'choices': [{
                 'message': {
                     'role': 'assistant',
-                    'content': 'Error: No LLM API key configured. Please set TOGETHER_API_KEY environment variable.'
+                    'content': 'Error: No LLM API key configured. Please set GROQ_API_KEY, TOGETHER_API_KEY, or OPENAI_API_KEY environment variable.'
                 }
             }],
             'provider': 'none',

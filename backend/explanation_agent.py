@@ -91,24 +91,35 @@ Start with: "Here's how this code works..."
         
         try:
             # 1. Get Script
-            response = self.llm_gateway.completion(
-                messages=[
-                    {"role": "system", "content": script_prompt},
-                    {"role": "user", "content": f"Problem: {problem}\nCode:\n{code}"}
-                ],
-                temperature=0.5,
-                max_tokens=600  # Short script
-            )
+            print("🎤 [AudioAgent] Requesting script generation from LLM...")
+            try:
+                response = self.llm_gateway.completion(
+                    messages=[
+                        {"role": "system", "content": script_prompt},
+                        {"role": "user", "content": f"Problem: {problem}\nCode:\n{code}"}
+                    ],
+                    temperature=0.5,
+                    max_tokens=600
+                )
+            except Exception as e:
+                print(f"❌ [AudioAgent] LLM Gateway Crash: {e}")
+                raise e
             
-            script = response['choices'][0]['message']['content']
+            print("🎤 [AudioAgent] LLM response received.")
+            script = response.get('choices', [{}])[0].get('message', {}).get('content', '')
+            if not script:
+                raise ValueError("Empty script from LLM")
+
+            print(f"🎤 [AudioAgent] Script generated ({len(script)} chars). Generating audio with gTTS...")
             
             # 2. Convert to Audio (gTTS)
-            # Create unique filename based on content hash or uuid
             filename = f"explanation_{uuid.uuid4().hex[:8]}.mp3"
             filepath = os.path.join(self.audio_dir, filename)
             
+            print(f"🎤 [AudioAgent] Saving to {filepath}...")
             tts = gTTS(text=script, lang='en', slow=False)
             tts.save(filepath)
+            print("🎤 [AudioAgent] Audio saved successfully.")
             
             # Return relative path for frontend
             relative_path = f"/audio_cache/{filename}"

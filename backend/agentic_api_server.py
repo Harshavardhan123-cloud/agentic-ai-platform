@@ -366,9 +366,90 @@ def visualize_code():
 
 
 
+
 # ============================================================================
-# HEALTH & STATUS
+# EXPLANATION AGENTS
 # ============================================================================
+
+from flask import send_from_directory
+
+@app.route('/api/explain', methods=['POST'])
+@jwt_required()
+def explain_code():
+    """Generate detailed text explanation."""
+    if not PLATFORM_AVAILABLE or not getattr(platform, 'text_explanation_agent', None):
+        return jsonify({'error': 'Explanation service not available'}), 503
+        
+    data = request.json
+    code = data.get('code', '')
+    problem = data.get('problem_statement', '')
+    conversation_id = data.get('conversation_id')
+    
+    if not code or not problem:
+        return jsonify({'error': 'Code and Problem Statement required'}), 400
+        
+    try:
+        if conversation_id and ws_server:
+            ws_server.emit_agent_status('text_explainer', 'active', conversation_id)
+            
+        result = platform.text_explanation_agent.generate_explanation(code, problem)
+        
+        # Dashboard metrics
+        if dashboard:
+             explainer = dashboard.get_agent("text_explainer")
+             if explainer:
+                 explainer.record_call(result.get("success", False), tokens=500, task="explain_code")
+        
+        if conversation_id and ws_server:
+            ws_server.emit_agent_status('text_explainer', 'idle', conversation_id)
+            
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/explain-audio', methods=['POST'])
+@jwt_required()
+def explain_audio():
+    """Generate audio explanation."""
+    if not PLATFORM_AVAILABLE or not getattr(platform, 'audio_explanation_agent', None):
+        return jsonify({'error': 'Audio service not available'}), 503
+        
+    data = request.json
+    code = data.get('code', '')
+    problem = data.get('problem_statement', '')
+    conversation_id = data.get('conversation_id')
+
+    if not code or not problem:
+        return jsonify({'error': 'Code and Problem Statement required'}), 400
+        
+    try:
+        if conversation_id and ws_server:
+            ws_server.emit_agent_status('audio_explainer', 'active', conversation_id)
+
+        result = platform.audio_explanation_agent.generate_audio(code, problem)
+        
+        # Dashboard metrics
+        if dashboard:
+             audio_agent = dashboard.get_agent("audio_explainer")
+             if audio_agent:
+                 audio_agent.record_call(result.get("success", False), tokens=600, task="generate_audio")
+
+        if conversation_id and ws_server:
+            ws_server.emit_agent_status('audio_explainer', 'idle', conversation_id)
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# Serve Audio Files
+@app.route('/audio_cache/<path:filename>')
+def serve_audio(filename):
+    """Serve generated audio files."""
+    return send_from_directory('../frontend/public/audio_cache', filename)
+
+
 
 @app.route('/api/health', methods=['GET'])
 def health():

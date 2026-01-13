@@ -22,6 +22,9 @@ class AgenticPlatform:
     - Conversations and state management
     """
     
+    from backend.visualization_generator import VisualizationGenerator
+    from backend.explanation_agent import TextExplanationAgent, AudioExplanationAgent
+
     def __init__(self):
         """Initialize platform."""
         self.gateway = get_llm_gateway()
@@ -32,6 +35,10 @@ class AgenticPlatform:
             'total_conversations': 0,
             'active_conversations': 0
         }
+        
+        # Initialize Explanation Agents
+        self.text_explanation_agent = TextExplanationAgent(self.gateway)
+        self.audio_explanation_agent = AudioExplanationAgent(self.gateway)
     
     def set_websocket_server(self, ws_server):
         """Set WebSocket server instance."""

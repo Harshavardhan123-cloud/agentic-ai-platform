@@ -12,7 +12,62 @@ const ProblemSolver = () => {
     const [error, setError] = useState('')
     const [showResult, setShowResult] = useState(false)
     const [showVisualizer, setShowVisualizer] = useState(false)
+
+    // New Feature State
+    const [explanation, setExplanation] = useState(null)
+    const [loadingExplanation, setLoadingExplanation] = useState(false)
+    const [audioUrl, setAudioUrl] = useState(null)
+    const [audioScript, setAudioScript] = useState(null)
+    const [loadingAudio, setLoadingAudio] = useState(false)
+
     const { getAuthHeader } = useAuth()
+
+    const getExplanation = async () => {
+        if (!generatedCode) return;
+        setLoadingExplanation(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/explain`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                body: JSON.stringify({
+                    code: generatedCode.code,
+                    problem_statement: generatedCode.problem_statement
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setExplanation(data.explanation);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingExplanation(false);
+        }
+    };
+
+    const getAudio = async () => {
+        if (!generatedCode) return;
+        setLoadingAudio(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/explain-audio`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+                body: JSON.stringify({
+                    code: generatedCode.code,
+                    problem_statement: generatedCode.problem_statement
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAudioUrl(data.audio_url);
+                setAudioScript(data.script);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingAudio(false);
+        }
+    };
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5000';
@@ -260,6 +315,55 @@ const ProblemSolver = () => {
                                     <span className="meta-value">{generatedCode.code.length} chars</span>
                                 </div>
                             </div>
+                        </div>
+
+
+                        {/* Explanation & Audio Section */}
+                        <div className="card glass-card result-card">
+                            <div className="card-header">
+                                <h2>🎓 Explanation & Audio</h2>
+                                <div className="header-actions">
+                                    <button
+                                        onClick={getExplanation}
+                                        disabled={loadingExplanation}
+                                        className="visualize-btn"
+                                        style={{ background: '#4facfe' }}
+                                    >
+                                        {loadingExplanation ? 'Analyzing...' : '📖 Text Explain'}
+                                    </button>
+                                    <button
+                                        onClick={getAudio}
+                                        disabled={loadingAudio}
+                                        className="visualize-btn"
+                                        style={{ background: '#ff9a9e' }}
+                                    >
+                                        {loadingAudio ? 'Generating...' : '🎧 Audio Walkthrough'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Text Explanation Display */}
+                            {explanation && (
+                                <div className="explanation-content" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                                    <h3>Detailed Analysis</h3>
+                                    <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'system-ui', lineHeight: '1.6' }}>
+                                        {explanation}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Audio Player */}
+                            {audioUrl && (
+                                <div className="audio-player" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', textAlign: 'center' }}>
+                                    <h3>🎧 Audio Walkthrough</h3>
+                                    <audio controls src={`${API_BASE_URL}${audioUrl}`} style={{ width: '100%', marginTop: '0.5rem' }} />
+                                    {audioScript && (
+                                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#ccc', fontStyle: 'italic' }}>
+                                            "{audioScript}"
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Complexity Analysis */}

@@ -300,6 +300,16 @@ class AG2Dashboard:
     - Activity tracking
     """
     
+class TextExplainerAgent(AG2Agent):
+    """Agent for text explanations."""
+    def __init__(self, llm_gateway=None):
+        super().__init__(name="TextExplainer", description="Generates detailed text analysis")
+
+class AudioExplainerAgent(AG2Agent):
+    """Agent for audio generation."""
+    def __init__(self, llm_gateway=None):
+        super().__init__(name="AudioExplainer", description="Generates audio walkthroughs")
+
     def __init__(self, llm_gateway=None):
         self.start_time = datetime.now()
         self.llm_gateway = llm_gateway
@@ -312,7 +322,9 @@ class AG2Dashboard:
             "guardrails": GuardrailsAgent(),
             "test_generator": TestGeneratorAgent(llm_gateway),
             "code_reviewer": CodeReviewerAgent(llm_gateway),
-            "visualizer": VisualizationAgent(llm_gateway)
+            "visualizer": VisualizationAgent(llm_gateway),
+            "text_explainer": TextExplainerAgent(llm_gateway),
+            "audio_explainer": AudioExplainerAgent(llm_gateway)
         }
 
         

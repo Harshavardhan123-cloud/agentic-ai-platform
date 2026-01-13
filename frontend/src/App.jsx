@@ -8,6 +8,7 @@ import './App.css'
 
 // Inner component to access AuthContext
 const AppContent = () => {
+    // Default to 'home' so users see valid UI immediately
     const [activeTab, setActiveTab] = useState('home')
     const { user, loading } = useAuth()
 
@@ -26,12 +27,11 @@ const AppContent = () => {
         )
     }
 
-    // Show Login if not authenticated
-    if (!user) {
-        return <Login />
+    // Helper to switch tabs safely
+    const handleTabChange = (tab) => {
+        setActiveTab(tab)
     }
 
-    // Authenticated App
     return (
         <div className="app">
             {/* Navigation */}
@@ -55,21 +55,39 @@ const AppContent = () => {
                         <span className="tab-icon">📊</span>
                         Dashboard
                     </button>
-                    <button
-                        className="nav-tab logout-btn"
-                        onClick={() => window.location.reload()} // Simple logout by refresh (clears state if not persisted or relies on AuthContext)
-                        style={{ marginLeft: '1rem', background: 'rgba(255,100,100,0.1)', color: '#ffaaaa' }}
-                    >
-                        Logout
-                    </button>
+
+                    {/* Auth Status / Action Button */}
+                    {user ? (
+                        <button
+                            className="nav-tab logout-btn"
+                            onClick={() => window.location.reload()} // Simple logout
+                            style={{ marginLeft: '1rem', background: 'rgba(255,100,100,0.1)', color: '#ffaaaa' }}
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <button
+                            className={`nav-tab ${activeTab === 'login' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('login')}
+                            style={{ marginLeft: '1rem', background: 'rgba(100,255,100,0.1)', color: '#aaffaa' }}
+                        >
+                            Login
+                        </button>
+                    )}
                 </div>
             </nav>
 
-            {/* Content */}
+            {/* Content Area */}
             <main className="main-content">
-                {activeTab === 'home' && <Home onStart={setActiveTab} />}
-                {activeTab === 'problem-solver' && <ProblemSolver />}
-                {activeTab === 'dashboard' && <Dashboard />}
+                {/* 1. Public Home - Always visible if active */}
+                {activeTab === 'home' && <Home onStart={handleTabChange} />}
+
+                {/* 2. Login Page - Explicitly selected */}
+                {activeTab === 'login' && (!user ? <Login /> : <div className="already-logged-in">You are already logged in!</div>)}
+
+                {/* 3. Protected Routes - Show Login if !user */}
+                {activeTab === 'problem-solver' && (user ? <ProblemSolver /> : <Login />)}
+                {activeTab === 'dashboard' && (user ? <Dashboard /> : <Login />)}
             </main>
         </div>
     )

@@ -8,7 +8,6 @@ Explanation Agents for the Agentic AI Platform.
 import os
 import uuid
 from typing import Dict, Any
-from gtts import gTTS
 
 class TextExplanationAgent:
     """Agent responsible for generating detailed text explanations."""
@@ -63,7 +62,7 @@ Explain this solution in detail.
 
 
 class AudioExplanationAgent:
-    """Agent responsible for generating audio explanations."""
+    """Agent responsible for generating audio explanations using OpenAI TTS."""
     
     def __init__(self, llm_gateway, audio_dir="frontend/public/audio_cache"):
         self.llm_gateway = llm_gateway
@@ -75,11 +74,11 @@ class AudioExplanationAgent:
     def generate_audio(self, code: str, problem: str) -> Dict[str, Any]:
         """
         1. Generate a short, conversational script using LLM.
-        2. Convert script to Audio using gTTS.
+        2. Convert script to Audio using OpenAI TTS API.
         3. Return path to audio file.
         """
         if not self.llm_gateway:
-            return {"error": "LLM Gateway not available"}
+            return {"success": False, "error": "LLM Gateway not available"}
             
         # Step 1: Generate Script
         script_prompt = """You are a Tech Podcast Host.
@@ -103,33 +102,52 @@ Start with: "Here's how this code works..."
                     max_tokens=600
                 )
                 script = response.get('choices', [{}])[0].get('message', {}).get('content', '')
-            except (RecursionError, Exception) as llm_err:
-                print(f"⚠️ [AudioAgent] LLM Generation Failed (Recursion/Error): {llm_err}")
-                print("⚠️ [AudioAgent] Using fallback script.")
-                script = "Here is a summary of the solution. The code implements an optimized algorithm to solve the problem efficiently. Please review the visual explanation for more details."
+            except Exception as llm_err:
+                print(f"⚠️ [AudioAgent] LLM Generation Failed: {llm_err}")
+                script = "Here is a summary of the solution. The code implements an optimized algorithm to solve the problem efficiently."
 
             print("🎤 [AudioAgent] LLM response received/handled.")
-            if not script or script.startswith("Error:") or script == "Code explanation unavailable.":
-                print(f"⚠️ [AudioAgent] Skipping audio generation due to invalid script content: '{script[:50]}...'")
+            if not script or script.startswith("Error:"):
+                print(f"⚠️ [AudioAgent] Skipping audio generation due to invalid script content.")
                 return {
                     "success": True,
                     "audio_url": None,
-                    "script": script,
+                    "script": script or "Script generation failed.",
                     "provider": "llm_text_only",
                     "warning": "Audio skipped (Error in script)."
                 }
 
-            print(f"🎤 [AudioAgent] Script generated ({len(script)} chars). Generating audio with gTTS...")
+            print(f"🎤 [AudioAgent] Script generated ({len(script)} chars). Generating audio with OpenAI TTS...")
             
+            # 2. Convert to Audio using OpenAI TTS API
             try:
-                # 2. Convert to Audio (gTTS)
+                openai_key = os.getenv('OPENAI_API_KEY')
+                if not openai_key:
+                    print("⚠️ [AudioAgent] OPENAI_API_KEY not found, returning text only.")
+                    return {
+                        "success": True,
+                        "audio_url": None,
+                        "script": script,
+                        "provider": "llm_text_only",
+                        "warning": "Audio skipped (No OpenAI API key for TTS)."
+                    }
+                
+                from openai import OpenAI
+                client = OpenAI(api_key=openai_key)
+                
                 filename = f"explanation_{uuid.uuid4().hex[:8]}.mp3"
                 filepath = os.path.join(self.audio_dir, filename)
                 
-                print(f"🎤 [AudioAgent] Saving to {filepath}...")
-                tts = gTTS(text=script, lang='en', slow=False)
-                tts.save(filepath)
-                print("🎤 [AudioAgent] Audio saved successfully.")
+                print(f"🎤 [AudioAgent] Calling OpenAI TTS API...")
+                response = client.audio.speech.create(
+                    model="tts-1",
+                    voice="alloy",
+                    input=script
+                )
+                
+                # Save the audio file
+                response.stream_to_file(filepath)
+                print(f"🎤 [AudioAgent] Audio saved to {filepath}")
                 
                 # Return relative path for frontend
                 relative_path = f"/audio_cache/{filename}"
@@ -138,27 +156,20 @@ Start with: "Here's how this code works..."
                     "success": True,
                     "audio_url": relative_path,
                     "script": script,
-                    "provider": "gTTS"
+                    "provider": "openai_tts"
                 }
 
-            except (RecursionError, Exception) as audio_err:
-                print(f"⚠️ [AudioAgent] gTTS Failed (Recursion/Error): {audio_err}")
-                print("⚠️ [AudioAgent] Returning text-only script as fallback.")
-                
-                # FALLBACK: Return success but without audio_url (frontend should handle this)
-                # OR return a placeholder if needed.
+            except Exception as audio_err:
+                print(f"⚠️ [AudioAgent] OpenAI TTS Failed: {audio_err}")
                 return {
                     "success": True, 
-                    "audio_url": None, # Frontend handles null url
+                    "audio_url": None,
                     "script": script,
                     "provider": "llm_text_only",
-                    "warning": "Audio generation failed, showing script only."
+                    "warning": f"Audio generation failed: {str(audio_err)}"
                 }
             
         except Exception as e:
             print(f"❌ [AudioAgent] Critical Failure: {e}")
             return {"success": False, "error": str(e)}
-            
-        except Exception as e:
-            print(f"Audio generation failed: {e}")
-            return {"success": False, "error": str(e)}
+

@@ -181,11 +181,11 @@ const ProblemSolver = () => {
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px', minHeight: '100vh', backgroundColor: 'var(--bg-app)' }}>
             {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                <h1 className="h2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '1.75rem' }}>
-                    <div className="icon-box" style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.1)', display: 'inline-flex' }}>
-                        <SmartToyIcon style={{ color: 'var(--accent-primary)' }} />
-                    </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px', textAlign: 'center' }}>
+                <div style={{ marginBottom: '20px' }}>
+                    <Logo size="large" />
+                </div>
+                <h1 className="h2" style={{ fontSize: '2rem' }}>
                     AI Problem Solver
                 </h1>
                 <p className="text-light" style={{ marginTop: '8px' }}>Generate complete, production-quality code instantly</p>

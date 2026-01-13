@@ -44,7 +44,7 @@ const ProblemSolver = () => {
         setShowResult(false)
 
         try {
-            const response = await fetch(`${API_URL}/api/generate-code`, {
+            const response = await fetch(`${API_BASE_URL}/api/generate-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -21,8 +21,8 @@ const Home = ({ onStart }) => {
     return (
         <div className="home-container">
             <header className="home-hero">
-                <h1>Agentic AI Platform</h1>
-                <p className="subtitle">Autonomous Code Generation & Visualization</p>
+                <h1>HRC AI</h1>
+                <p className="subtitle">Automatic Code Generation and Analysis</p>
 
                 <div className="status-badge">
                     <span className={`status-dot ${serverStatus}`}></span>
@@ -35,7 +35,7 @@ const Home = ({ onStart }) => {
 
                 <div className="cta-group">
                     <button className="cta-primary" onClick={() => onStart('problem-solver')}>
-                        🚀 Start Coding (No Login)
+                        🚀 Login to Start
                     </button>
                     <button className="cta-secondary" onClick={() => onStart('dashboard')}>
                         📊 View Dashboard

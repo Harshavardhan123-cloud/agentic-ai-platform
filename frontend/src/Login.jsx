@@ -28,7 +28,7 @@ const Login = () => {
             <header className="app-header">
                 <div className="logo-container">
                     <span className="logo-icon">🔐</span>
-                    <h1>Login Required</h1>
+                    <h1>HRC AI Login</h1>
                 </div>
             </header>
 

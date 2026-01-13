@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 import './Dashboard.css'
 
 function Dashboard() {
@@ -6,11 +7,14 @@ function Dashboard() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [autoRefresh, setAutoRefresh] = useState(true)
+    const { getAuthHeader } = useAuth()
 
     const fetchDashboard = async () => {
         try {
             const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const response = await fetch(`${API_BASE_URL}/api/dashboard`)
+            const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
+                headers: getAuthHeader()
+            })
             if (!response.ok) throw new Error('Failed to fetch dashboard')
             const data = await response.json()
             setDashboardData(data)
@@ -69,7 +73,7 @@ function Dashboard() {
             <div className="dashboard-header">
                 <div className="header-title">
                     <span className="icon">📊</span>
-                    <h1>AG2 Dashboard</h1>
+                    <h1>HRC AI Dashboard</h1>
                 </div>
                 <div className="header-controls">
                     <label className="auto-refresh">
@@ -221,7 +225,7 @@ function Dashboard() {
 
             {/* Footer */}
             <div className="dashboard-footer">
-                <p>AG2 Multi-Agent Dashboard • Powered by Groq + Llama 3.3</p>
+                <p>HRC AI Dashboard • Powered by Groq + Llama 3.3</p>
             </div>
         </div>
     )

@@ -13,7 +13,7 @@ function App() {
             <nav className="main-nav">
                 <div className="nav-brand" onClick={() => setActiveTab('home')} style={{ cursor: 'pointer' }}>
                     <span className="brand-icon">🤖</span>
-                    <span className="brand-text">Agentic AI Platform</span>
+                    <span className="brand-text">HRC AI</span>
                 </div>
                 <div className="nav-tabs">
                     <button

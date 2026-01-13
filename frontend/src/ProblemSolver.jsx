@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AlgorithmVisualizer from './AlgorithmVisualizer'
+import { useAuth } from './AuthContext'
 import './ProblemSolver.css'
 
 const ProblemSolver = () => {
@@ -11,6 +12,7 @@ const ProblemSolver = () => {
     const [error, setError] = useState('')
     const [showResult, setShowResult] = useState(false)
     const [showVisualizer, setShowVisualizer] = useState(false)
+    const { getAuthHeader } = useAuth()
 
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5000';
@@ -46,7 +48,10 @@ const ProblemSolver = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/generate-code`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
                 body: JSON.stringify({
                     problem_statement: problemStatement,
                     language: language,

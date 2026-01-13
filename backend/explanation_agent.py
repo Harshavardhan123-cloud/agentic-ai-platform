@@ -112,24 +112,43 @@ Start with: "Here's how this code works..."
 
             print(f"🎤 [AudioAgent] Script generated ({len(script)} chars). Generating audio with gTTS...")
             
-            # 2. Convert to Audio (gTTS)
-            filename = f"explanation_{uuid.uuid4().hex[:8]}.mp3"
-            filepath = os.path.join(self.audio_dir, filename)
+            try:
+                # 2. Convert to Audio (gTTS)
+                filename = f"explanation_{uuid.uuid4().hex[:8]}.mp3"
+                filepath = os.path.join(self.audio_dir, filename)
+                
+                print(f"🎤 [AudioAgent] Saving to {filepath}...")
+                tts = gTTS(text=script, lang='en', slow=False)
+                tts.save(filepath)
+                print("🎤 [AudioAgent] Audio saved successfully.")
+                
+                # Return relative path for frontend
+                relative_path = f"/audio_cache/{filename}"
+                
+                return {
+                    "success": True,
+                    "audio_url": relative_path,
+                    "script": script,
+                    "provider": "gTTS"
+                }
+
+            except (RecursionError, Exception) as audio_err:
+                print(f"⚠️ [AudioAgent] gTTS Failed (Recursion/Error): {audio_err}")
+                print("⚠️ [AudioAgent] Returning text-only script as fallback.")
+                
+                # FALLBACK: Return success but without audio_url (frontend should handle this)
+                # OR return a placeholder if needed.
+                return {
+                    "success": True, 
+                    "audio_url": None, # Frontend handles null url
+                    "script": script,
+                    "provider": "llm_text_only",
+                    "warning": "Audio generation failed, showing script only."
+                }
             
-            print(f"🎤 [AudioAgent] Saving to {filepath}...")
-            tts = gTTS(text=script, lang='en', slow=False)
-            tts.save(filepath)
-            print("🎤 [AudioAgent] Audio saved successfully.")
-            
-            # Return relative path for frontend
-            relative_path = f"/audio_cache/{filename}"
-            
-            return {
-                "success": True,
-                "audio_url": relative_path,
-                "script": script,
-                "provider": "gTTS"
-            }
+        except Exception as e:
+            print(f"❌ [AudioAgent] Critical Failure: {e}")
+            return {"success": False, "error": str(e)}
             
         except Exception as e:
             print(f"Audio generation failed: {e}")

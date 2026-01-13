@@ -57,6 +57,17 @@ This guide describes how to deploy the Agentic AI Platform for free using **Rend
     *   `VITE_WS_URL`: Paste the same URL.
 6.  Click **Deploy**.
 
+## ⚠️ Common Deployment Issues
+
+### "Error: No flask entrypoint found" on Vercel
+This means Vercel is trying to build your backend instead of your frontend.
+**Fix:**
+1.  Go to **Settings** > **General** in your Vercel project.
+2.  Find **Root Directory**.
+3.  Click **Edit** and change it to `frontend`.
+4.  Click **Save**.
+5.  Go to **Deployments** and redeploy.
+
 ---
 
 ## 🎉 Done!

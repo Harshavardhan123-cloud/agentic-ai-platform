@@ -65,79 +65,79 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px' }}>
-            <div className="glass-card" style={{ maxWidth: '500px', width: '100%' }}>
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div className="icon-box" style={{ margin: '0 auto 15px', width: '60px', height: '60px' }}>
-                        <HowToRegIcon style={{ fontSize: '32px', color: 'var(--orange-yellow-crayola)' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px', backgroundColor: 'var(--bg-app)' }}>
+            <div className="content-card" style={{ maxWidth: '500px', width: '100%', padding: '32px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div className="icon-box" style={{ margin: '0 auto 16px', display: 'inline-flex', padding: '12px', borderRadius: '12px', backgroundColor: 'rgba(99, 102, 241, 0.1)' }}>
+                        <HowToRegIcon style={{ fontSize: '32px', color: 'var(--accent-primary)' }} />
                     </div>
-                    <h2 className="h2" style={{ fontSize: '24px' }}>Create Account</h2>
+                    <h2 className="h2" style={{ marginBottom: '8px' }}>Create Account</h2>
                     <p className="text-light">Join the Agentic AI Platform</p>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {error && (
-                        <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255, 68, 68, 0.1)', border: '1px solid rgba(255, 68, 68, 0.2)', color: '#ff6b6b', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
+                        <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#fb7185', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
                             <span>⚠️</span> {error}
                         </div>
                     )}
                     {success && (
-                        <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(68, 255, 68, 0.1)', border: '1px solid rgba(68, 255, 68, 0.2)', color: '#51ff51', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
+                        <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', color: '#4ade80', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
                             <span>✅</span> {success}
                         </div>
                     )}
 
                     <div style={{ position: 'relative' }}>
-                        <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                        <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                             <BadgeIcon fontSize="small" />
                         </div>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" className="form-input" style={{ paddingLeft: '45px' }} required />
+                        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" className="form-input" style={{ paddingLeft: '40px' }} required />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                            <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                                 <PhoneIcon fontSize="small" />
                             </div>
-                            <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone (10 digits)" maxLength="10" className="form-input" style={{ paddingLeft: '45px' }} required />
+                            <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone" maxLength="10" className="form-input" style={{ paddingLeft: '40px' }} required />
                         </div>
                         <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                            <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                                 <PublicIcon fontSize="small" />
                             </div>
-                            <select name="country" value={formData.country} onChange={handleChange} className="form-input" style={{ paddingLeft: '45px', appearance: 'none', cursor: 'pointer' }} required>
-                                <option value="" style={{ color: 'black' }}>Select Country</option>
-                                <option value="India" style={{ color: 'black' }}>India</option>
-                                <option value="USA" style={{ color: 'black' }}>USA</option>
-                                <option value="UK" style={{ color: 'black' }}>UK</option>
-                                <option value="Canada" style={{ color: 'black' }}>Canada</option>
-                                <option value="Australia" style={{ color: 'black' }}>Australia</option>
-                                <option value="Germany" style={{ color: 'black' }}>Germany</option>
-                                <option value="France" style={{ color: 'black' }}>France</option>
-                                <option value="Japan" style={{ color: 'black' }}>Japan</option>
+                            <select name="country" value={formData.country} onChange={handleChange} className="form-input" style={{ paddingLeft: '40px', appearance: 'none', cursor: 'pointer' }} required>
+                                <option value="" style={{ color: 'var(--text-tertiary)' }}>Select Country</option>
+                                <option value="India" style={{ color: 'var(--text-primary)' }}>India</option>
+                                <option value="USA" style={{ color: 'var(--text-primary)' }}>USA</option>
+                                <option value="UK" style={{ color: 'var(--text-primary)' }}>UK</option>
+                                <option value="Canada" style={{ color: 'var(--text-primary)' }}>Canada</option>
+                                <option value="Australia" style={{ color: 'var(--text-primary)' }}>Australia</option>
+                                <option value="Germany" style={{ color: 'var(--text-primary)' }}>Germany</option>
+                                <option value="France" style={{ color: 'var(--text-primary)' }}>France</option>
+                                <option value="Japan" style={{ color: 'var(--text-primary)' }}>Japan</option>
                             </select>
                         </div>
                     </div>
 
                     <div style={{ position: 'relative' }}>
-                        <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                        <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                             <PersonIcon fontSize="small" />
                         </div>
-                        <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Username" className="form-input" style={{ paddingLeft: '45px' }} required />
+                        <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Username" className="form-input" style={{ paddingLeft: '40px' }} required />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                            <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                                 <LockIcon fontSize="small" />
                             </div>
-                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="form-input" style={{ paddingLeft: '45px' }} required />
+                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="form-input" style={{ paddingLeft: '40px' }} required />
                         </div>
                         <div style={{ position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '14px', left: '15px', color: 'var(--light-gray-70)' }}>
+                            <div style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                                 <LockIcon fontSize="small" />
                             </div>
-                            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm" className="form-input" style={{ paddingLeft: '45px' }} required />
+                            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm" className="form-input" style={{ paddingLeft: '40px' }} required />
                         </div>
                     </div>
 
@@ -145,14 +145,14 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                         <span>Create Account</span>
                     </button>
 
-                    <div className="separator"></div>
+                    <div className="separator" style={{ margin: '24px 0' }}></div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', color: 'var(--light-gray)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                         <span onClick={onSwitchToHome} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', opacity: 0.8, transition: '0.2s' }}>
                             <ArrowBackIcon fontSize="small" /> Back to Home
                         </span>
                         <span>
-                            Already a member? <span onClick={onSwitchToLogin} style={{ color: 'var(--orange-yellow-crayola)', cursor: 'pointer', fontWeight: '500' }}>Login</span>
+                            Already a member? <span onClick={onSwitchToLogin} style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' }}>Login</span>
                         </span>
                     </div>
                 </form>

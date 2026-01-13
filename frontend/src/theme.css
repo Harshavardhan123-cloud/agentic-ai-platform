@@ -1,280 +1,201 @@
 /*-----------------------------------*\
-  #style.css - PROJECT THEME REFERENCE
+  #theme.css - ENTERPRISE PROFESSIONAL
 \*-----------------------------------*/
 
 :root {
+    /* -- PALETTE: DEEP ZINC & SLATE -- */
+    --bg-app: #0f1115;
+    /* Very deep slate, almost black */
+    --bg-panel: #16191f;
+    /* Slightly lighter for cards */
+    --bg-panel-hover: #1c2026;
 
-    /**
-   * colors
-   */
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(99, 102, 241, 0.5);
+    /* Indigo focus */
 
-    /* gradient */
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    /* Slate 400 */
+    --text-tertiary: #64748b;
+    /* Slate 500 */
 
-    --bg-gradient-onyx: linear-gradient(to bottom right,
-            hsl(240, 1%, 25%) 3%,
-            hsl(0, 0%, 19%) 97%);
-    --bg-gradient-jet: linear-gradient(to bottom right,
-            hsla(240, 1%, 18%, 0.251) 0%,
-            hsla(240, 2%, 11%, 0) 100%), hsl(240, 2%, 13%);
-    --bg-gradient-yellow-1: linear-gradient(to bottom right,
-            hsl(45, 100%, 71%) 0%,
-            hsla(36, 100%, 69%, 0) 50%);
-    --bg-gradient-yellow-2: linear-gradient(135deg,
-            hsla(45, 100%, 71%, 0.251) 0%,
-            hsla(35, 100%, 68%, 0) 59.86%), hsl(240, 2%, 13%);
-    --border-gradient-onyx: linear-gradient(to bottom right,
-            hsl(0, 0%, 25%) 0%,
-            hsla(0, 0%, 25%, 0) 50%);
-    --text-gradient-yellow: linear-gradient(to right,
-            hsl(45, 100%, 72%),
-            hsl(35, 100%, 68%));
+    --accent-primary: #6366f1;
+    /* Indigo 500 */
+    --accent-hover: #4f46e5;
+    /* Indigo 600 */
+    --accent-glow: rgba(99, 102, 241, 0.2);
 
-    /* solid */
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #eab308;
 
-    --jet: hsl(0, 0%, 22%);
-    --onyx: hsl(240, 1%, 17%);
-    --eerie-black-1: hsl(240, 2%, 13%);
-    --eerie-black-2: hsl(240, 2%, 12%);
-    --smoky-black: hsl(0, 0%, 7%);
-    --white-1: hsl(0, 0%, 100%);
-    --white-2: hsl(0, 0%, 98%);
-    --orange-yellow-crayola: hsl(45, 100%, 72%);
-    --vegas-gold: hsl(45, 54%, 58%);
-    --light-gray: hsl(0, 0%, 84%);
-    --light-gray-70: hsla(0, 0%, 84%, 0.7);
-    --bittersweet-shimmer: hsl(0, 43%, 51%);
+    /* -- TYPOGRAPHY -- */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-    /**
-   * typography
-   */
-
-    /* font-family */
-    --ff-poppins: 'Poppins', sans-serif;
-
-    /* font-size */
-    --fs-1: 24px;
-    --fs-2: 18px;
-    --fs-3: 17px;
-    --fs-4: 16px;
-    --fs-5: 15px;
-    --fs-6: 14px;
-    --fs-7: 13px;
-    --fs-8: 11px;
-
-    /* font-weight */
-    --fw-300: 300;
-    --fw-400: 400;
-    --fw-500: 500;
-    --fw-600: 600;
-
-    /**
-   * shadow
-   */
-
-    --shadow-1: -4px 8px 24px hsla(0, 0%, 0%, 0.25);
-    --shadow-2: 0 16px 30px hsla(0, 0%, 0%, 0.25);
-    --shadow-3: 0 16px 40px hsla(0, 0%, 0%, 0.25);
-    --shadow-4: 0 25px 50px hsla(0, 0%, 0%, 0.15);
-    --shadow-5: 0 24px 80px hsla(0, 0%, 0%, 0.25);
-
-    /**
-   * transition
-   */
-
-    --transition-1: 0.25s ease;
-    --transition-2: 0.5s ease-in-out;
-
+    /* -- SPACING & RADIUS -- */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
 }
 
-/*-----------------------------------*\
-  #RESET
-\*-----------------------------------*/
-
+/* -- RESET & BASE -- */
 *,
 *::before,
 *::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-a {
-    text-decoration: none;
-}
-
-li {
-    list-style: none;
-}
-
-img,
-ion-icon,
-a,
-button,
-time,
-span {
-    display: block;
-}
-
-button {
-    font: inherit;
-    background: none;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-}
-
-input,
-textarea {
-    display: block;
-    width: 100%;
-    background: none;
-    font: inherit;
-}
-
-::selection {
-    background: var(--orange-yellow-crayola);
-    color: var(--smoky-black);
-}
-
-:focus {
-    outline-color: var(--orange-yellow-crayola);
-}
-
-html {
-    font-family: var(--ff-poppins);
 }
 
 body {
-    background: var(--smoky-black);
-    color: var(--white-2);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
 }
 
+input,
+button,
+textarea,
+select {
+    font-family: inherit;
+    font-size: inherit;
+}
 
-/*-----------------------------------*\
-  #REUSED STYLE (Utility Classes)
-\*-----------------------------------*/
+a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
 
+a:hover {
+    color: var(--accent-hover);
+}
+
+/* -- UTILITY COMPONENTS -- */
+
+/* 1. PROFESSIONAL CARD
+   Flat, clean dark background, subtle border, no heavy blur/milky effect. */
+.content-card,
 .glass-card {
-    /* Mapped to content-card for compatibility with existing code */
-    background: var(--border-gradient-onyx);
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: var(--shadow-2);
-    position: relative;
-    border: 1px solid var(--jet);
-    z-index: 1;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.glass-card::before {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    background: var(--bg-gradient-jet);
-    border-radius: inherit;
-    z-index: -1;
-}
-
-.content-card {
-    position: relative;
-    background: var(--border-gradient-onyx);
-    padding: 15px;
-    padding-top: 45px;
-    border-radius: 14px;
-    box-shadow: var(--shadow-2);
-    z-index: 1;
-}
-
-.content-card::before {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    background: var(--bg-gradient-jet);
-    border-radius: inherit;
-    z-index: -1;
-}
-
+/* 2. FORM INPUTS
+   Matte finish, high legibility, sharp focus ring. */
 .form-input {
-    color: var(--white-2);
-    font-size: var(--fs-6);
-    font-weight: var(--fw-400);
-    padding: 13px 20px;
-    background: var(--eerie-black-2);
-    border: 1px solid var(--jet);
-    border-radius: 14px;
-    outline: none;
-    transition: border-color var(--transition-1);
-}
-
-.form-input::placeholder {
-    font-weight: var(--fw-500);
-    color: var(--light-gray-70);
+    display: block;
+    width: 100%;
+    background-color: #09090b;
+    /* Darker than panel */
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-weight: 400;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
-    border-color: var(--orange-yellow-crayola);
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+.form-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* 3. BUTTONS
+   No gradients, no bevels. Clean flat colors or subtle borders. */
 .form-btn {
-    position: relative;
-    width: 100%;
-    background: var(--border-gradient-onyx);
-    color: var(--orange-yellow-crayola);
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 13px 20px;
-    border-radius: 14px;
-    font-size: var(--fs-6);
-    text-transform: capitalize;
-    box-shadow: var(--shadow-3);
-    z-index: 1;
-    transition: var(--transition-1);
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-weight: var(--fw-600);
-    border: 1px solid var(--jet);
+    transition: all 0.2s;
+
+    /* Primary Style Default */
+    background-color: var(--accent-primary);
+    color: #ffffff;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.form-btn::before {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    background: var(--bg-gradient-jet);
-    border-radius: inherit;
-    z-index: -1;
-    transition: var(--transition-1);
+.form-btn:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+    transform: translateY(-1px);
 }
 
-.form-btn:hover {
-    background: var(--bg-gradient-yellow-1);
-    color: var(--smoky-black);
-    border-color: transparent;
+.form-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
-/* Fix for hover text visibility on yellow background */
-.form-btn:hover::before {
-    background: var(--bg-gradient-yellow-2);
-    opacity: 0.1;
+/* Secondary Button Variant (Ghost/Outline) */
+.form-btn.secondary {
+    background-color: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
 }
 
+.form-btn.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+/* -- TYPOGRAPHY UTILITIES -- */
 .h2 {
-    font-size: var(--fs-1);
-    color: var(--white-1);
-    margin-bottom: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    line-height: 1.3;
 }
 
 .h3 {
-    font-size: var(--fs-2);
-    color: var(--white-2);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
 }
 
 .text-light {
-    color: var(--light-gray);
+    color: var(--text-secondary);
 }
 
 .separator {
-    width: 100%;
     height: 1px;
-    background: var(--jet);
-    margin: 16px 0;
+    background-color: var(--border-subtle);
+    margin: 24px 0;
+}
+
+/* -- ANIMATIONS -- */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

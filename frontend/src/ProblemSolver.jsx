@@ -178,114 +178,127 @@ const ProblemSolver = () => {
     }
 
     return (
-        <div className="problem-solver">
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px', minHeight: '100vh', backgroundColor: 'var(--bg-app)' }}>
             {/* Header */}
-            <div className="header">
-                <h1 className="title">
-                    <span className="icon">🤖</span>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                <h1 className="h2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '1.75rem' }}>
+                    <div className="icon-box" style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.1)', display: 'inline-flex' }}>
+                        <SmartToyIcon style={{ color: 'var(--accent-primary)' }} />
+                    </div>
                     AI Problem Solver
                 </h1>
-                <p className="subtitle">Generate complete, production-quality code instantly</p>
+                <p className="text-light" style={{ marginTop: '8px' }}>Generate complete, production-quality code instantly</p>
             </div>
 
             {/* Main Content */}
-            <div className="content">
+            <div>
                 {!showResult ? (
-                    <div className="input-section">
-                        <div className="card glass-card">
-                            <div className="card-header">
-                                <h2>📝 Describe Your Problem</h2>
-                            </div>
+                    <div className="content-card">
+                        <div style={{ marginBottom: '24px' }}>
+                            <h2 className="h3" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <DescriptionIcon /> Describe Your Problem
+                            </h2>
+                        </div>
 
-                            <div className="form-group">
-                                <label>Problem Statement</label>
-                                <textarea
-                                    value={problemStatement}
-                                    onChange={(e) => setProblemStatement(e.target.value)}
-                                    placeholder="Example: Write a function to reverse a linked list"
-                                    rows={6}
-                                    disabled={loading}
-                                    className="input-textarea"
-                                />
-                            </div>
+                        <div style={{ marginBottom: '24px' }}>
+                            <label className="text-light" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>Problem Statement</label>
+                            <textarea
+                                value={problemStatement}
+                                onChange={(e) => setProblemStatement(e.target.value)}
+                                placeholder="Example: Write a function to reverse a linked list"
+                                rows={6}
+                                disabled={loading}
+                                className="form-input"
+                                style={{ minHeight: '150px', resize: 'vertical' }}
+                            />
+                        </div>
 
-                            {/* Sample Problems */}
-                            <div className="samples">
-                                <span className="samples-label">Quick examples:</span>
+                        {/* Sample Problems */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <span className="text-light" style={{ fontSize: '0.85rem', display: 'block', marginBottom: '12px' }}>Quick examples:</span>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                 {SAMPLE_PROBLEMS.map((sample, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => useSample(sample)}
-                                        className="sample-btn"
                                         disabled={loading}
+                                        className="form-btn secondary"
+                                        style={{ width: 'auto', padding: '6px 12px', fontSize: '0.85rem', fontWeight: 400 }}
                                     >
                                         {sample}
                                     </button>
                                 ))}
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label>Programming Language</label>
+                        <div style={{ marginBottom: '32px' }}>
+                            <label className="text-light" style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>Programming Language</label>
+                            <div style={{ position: 'relative' }}>
+                                <CodeIcon style={{ position: 'absolute', top: '10px', left: '12px', color: 'var(--text-tertiary)', zIndex: 2 }} fontSize="small" />
                                 <select
                                     value={language}
                                     onChange={(e) => setLanguage(e.target.value)}
                                     disabled={loading}
-                                    className="input-select"
+                                    className="form-input"
+                                    style={{ paddingLeft: '40px', appearance: 'none', cursor: 'pointer' }}
                                 >
                                     {LANGUAGES.map(lang => (
-                                        <option key={lang} value={lang}>
+                                        <option key={lang} value={lang} style={{ color: 'black' }}>
                                             {lang.charAt(0).toUpperCase() + lang.slice(1)}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-
-                            {error && (
-                                <div className="error-message">
-                                    ⚠️ {error}
-                                </div>
-                            )}
-
-                            <button
-                                onClick={generateCode}
-                                disabled={!problemStatement || loading}
-                                className={`generate-btn ${loading ? 'loading' : ''}`}
-                            >
-                                {loading ? (
-                                    <>
-                                        <span className="spinner"></span>
-                                        Generating Complete Code...
-                                    </>
-                                ) : (
-                                    <>
-                                        ✨ Generate Solution
-                                    </>
-                                )}
-                            </button>
                         </div>
+
+                        {error && (
+                            <div style={{ marginBottom: '20px', padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#fb7185', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                ⚠️ {error}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={generateCode}
+                            disabled={!problemStatement || loading}
+                            className="form-btn"
+                            style={{ height: '48px', fontSize: '1rem' }}
+                        >
+                            {loading ? (
+                                <>
+                                    <RefreshIcon className="spin" />
+                                    Generating Solution...
+                                </>
+                            ) : (
+                                <>
+                                    <AutoAwesomeIcon /> Generate Solution
+                                </>
+                            )}
+                        </button>
                     </div>
                 ) : (
-                    <div className="results-section">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         {/* Generated Code */}
-                        <div className="card glass-card result-card">
-                            <div className="card-header">
-                                <h2>💡 Generated Solution</h2>
-                                <div className="header-actions">
-                                    <span className="language-badge">{generatedCode.language}</span>
-                                    <button onClick={copyCode} className="copy-btn">
-                                        📋 Copy
+                        <div className="content-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+                                <h2 className="h3" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <CodeIcon /> Generated Solution
+                                </h2>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <span style={{ padding: '4px 8px', borderRadius: '4px', background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.75rem', alignSelf: 'center', marginRight: '8px' }}>{generatedCode.language}</span>
+                                    <button onClick={copyCode} title="Copy Code" className="form-btn secondary" style={{ width: '36px', padding: 0 }}>
+                                        <ContentCopyIcon fontSize="small" />
                                     </button>
-                                    <button onClick={() => setShowVisualizer(true)} className="visualize-btn">
-                                        🎬 Visualize
+                                    <button onClick={() => setShowVisualizer(true)} title="Visualize" className="form-btn secondary" style={{ width: '36px', padding: 0 }}>
+                                        <PlayArrowIcon fontSize="small" />
                                     </button>
-                                    <button onClick={reset} className="reset-btn">
-                                        🔄 New Problem
+                                    <button onClick={reset} title="New Problem" className="form-btn secondary" style={{ width: '36px', padding: 0 }}>
+                                        <RefreshIcon fontSize="small" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="code-container">
-                                <pre className="code-block">
+                            <div style={{ background: '#09090b', borderRadius: '8px', padding: '20px', overflowX: 'auto', border: '1px solid var(--border-subtle)' }}>
+                                <pre style={{ margin: 0, fontFamily: 'monospace', color: '#e5e7eb', fontSize: '0.9rem' }}>
                                     <code>{generatedCode.code}</code>
                                 </pre>
                             </div>
@@ -298,44 +311,33 @@ const ProblemSolver = () => {
                                 />
                             )}
 
-
-                            <div className="metadata">
-                                <div className="meta-item">
-                                    <span className="meta-label">Provider:</span>
-                                    <span className="meta-value">{generatedCode.provider}</span>
-                                </div>
-                                <div className="meta-item">
-                                    <span className="meta-label">Generated:</span>
-                                    <span className="meta-value">
-                                        {new Date(generatedCode.timestamp).toLocaleTimeString()}
-                                    </span>
-                                </div>
-                                <div className="meta-item">
-                                    <span className="meta-label">Size:</span>
-                                    <span className="meta-value">{generatedCode.code.length} chars</span>
-                                </div>
+                            <div style={{ marginTop: '16px', display: 'flex', gap: '16px', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                                <span>Provider: {generatedCode.provider}</span>
+                                <span>Size: {generatedCode.code.length} chars</span>
                             </div>
                         </div>
 
 
                         {/* Explanation & Audio Section */}
-                        <div className="card glass-card result-card">
-                            <div className="card-header">
-                                <h2>🎓 Explanation & Audio</h2>
-                                <div className="header-actions">
+                        <div className="content-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h2 className="h3" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <DescriptionIcon /> Explanation & Audio
+                                </h2>
+                                <div style={{ display: 'flex', gap: '10px' }}>
                                     <button
                                         onClick={getExplanation}
                                         disabled={loadingExplanation}
-                                        className="visualize-btn"
-                                        style={{ background: '#4facfe' }}
+                                        className="form-btn secondary"
+                                        style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}
                                     >
                                         {loadingExplanation ? 'Analyzing...' : '📖 Text Explain'}
                                     </button>
                                     <button
                                         onClick={getAudio}
                                         disabled={loadingAudio}
-                                        className="visualize-btn"
-                                        style={{ background: '#ff9a9e' }}
+                                        className="form-btn secondary"
+                                        style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}
                                     >
                                         {loadingAudio ? 'Generating...' : '🎧 Audio Walkthrough'}
                                     </button>
@@ -344,9 +346,9 @@ const ProblemSolver = () => {
 
                             {/* Text Explanation Display */}
                             {explanation && (
-                                <div className="explanation-content" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                                    <h3>Detailed Analysis</h3>
-                                    <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'system-ui', lineHeight: '1.6' }}>
+                                <div style={{ marginTop: '1rem', padding: '20px', background: 'var(--bg-app)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                                    <h3 className="h4" style={{ color: 'var(--text-primary)', marginBottom: '12px', fontSize: '1rem', fontWeight: 600 }}>Detailed Analysis</h3>
+                                    <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-sans)', lineHeight: '1.6', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                                         {explanation}
                                     </div>
                                 </div>
@@ -354,11 +356,13 @@ const ProblemSolver = () => {
 
                             {/* Audio Player */}
                             {audioUrl && (
-                                <div className="audio-player" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', textAlign: 'center' }}>
-                                    <h3>🎧 Audio Walkthrough</h3>
-                                    <audio controls src={`${API_BASE_URL}${audioUrl}`} style={{ width: '100%', marginTop: '0.5rem' }} />
+                                <div style={{ marginTop: '1rem', padding: '20px', background: 'var(--bg-app)', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                                    <h3 className="h4" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '1rem' }}>
+                                        <HeadphonesIcon style={{ color: 'var(--accent-primary)' }} /> Audio Walkthrough
+                                    </h3>
+                                    <audio controls src={`${API_BASE_URL}${audioUrl}`} style={{ width: '100%', marginTop: '0.5rem', height: '40px' }} />
                                     {audioScript && (
-                                        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#ccc', fontStyle: 'italic' }}>
+                                        <div style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
                                             "{audioScript}"
                                         </div>
                                     )}
@@ -368,28 +372,36 @@ const ProblemSolver = () => {
 
                         {/* Complexity Analysis */}
                         {complexity && (
-                            <div className="card glass-card">
-                                <div className="card-header">
-                                    <h2>📊 Complexity Analysis</h2>
+                            <div className="content-card">
+                                <div style={{ marginBottom: '24px' }}>
+                                    <h2 className="h3" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <AssessmentIcon /> Complexity Analysis
+                                    </h2>
                                 </div>
 
-                                <div className="complexity-grid">
-                                    <div className="complexity-item time">
-                                        <div className="complexity-label">Time Complexity</div>
-                                        <div className="complexity-value">{complexity.complexity.time}</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                                    <div style={{ background: 'var(--bg-app)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                                        <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Time Complexity</div>
+                                        <div style={{ color: 'var(--accent-primary)', fontSize: '1.25rem', fontWeight: '600' }}>{complexity.complexity.time}</div>
                                     </div>
-                                    <div className="complexity-item space">
-                                        <div className="complexity-label">Space Complexity</div>
-                                        <div className="complexity-value">{complexity.complexity.space}</div>
+                                    <div style={{ background: 'var(--bg-app)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                                        <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Space Complexity</div>
+                                        <div style={{ color: 'var(--accent-primary)', fontSize: '1.25rem', fontWeight: '600' }}>{complexity.complexity.space}</div>
                                     </div>
                                 </div>
 
                                 {complexity.optimization_suggestions?.length > 0 && (
-                                    <div className="suggestions">
-                                        <h3>💡 Optimization Suggestions:</h3>
-                                        <ul>
+                                    <div style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
+                                        <h3 className="h4" style={{ marginBottom: '12px', color: 'var(--text-primary)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)' }}></div>
+                                            Optimization Suggestions
+                                        </h3>
+                                        <ul style={{ listStyle: 'none', paddingLeft: '14px', color: 'var(--text-secondary)' }}>
                                             {complexity.optimization_suggestions.map((suggestion, idx) => (
-                                                <li key={idx}>{suggestion}</li>
+                                                <li key={idx} style={{ marginBottom: '8px', position: 'relative' }}>
+                                                    <span style={{ position: 'absolute', left: '-14px', top: '8px', width: '4px', height: '1px', background: 'var(--text-tertiary)' }}></span>
+                                                    {suggestion}
+                                                </li>
                                             ))}
                                         </ul>
                                     </div>
@@ -401,7 +413,7 @@ const ProblemSolver = () => {
             </div>
 
             {/* Footer */}
-            <div className="footer">
+            <div style={{ textAlign: 'center', marginTop: '60px', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
                 <p>Powered by Enhanced Code Generator v2.0 • Complete Solutions, No Skeleton Code</p>
             </div>
         </div>

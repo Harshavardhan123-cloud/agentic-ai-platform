@@ -11,7 +11,7 @@ import './App.css'
 const AppContent = () => {
     // Default to 'home' so users see valid UI immediately
     const [activeTab, setActiveTab] = useState('home')
-    const { user, loading } = useAuth()
+    const { user, loading, logout } = useAuth()
 
     if (loading) {
         return (
@@ -61,7 +61,10 @@ const AppContent = () => {
                     {user ? (
                         <button
                             className="nav-tab logout-btn"
-                            onClick={() => window.location.reload()} // Simple logout
+                            onClick={() => {
+                                logout();
+                                setActiveTab('login');
+                            }}
                             style={{ marginLeft: '1rem', background: 'rgba(255,100,100,0.1)', color: '#ffaaaa' }}
                         >
                             Logout

@@ -9,6 +9,9 @@ from typing import Dict, Any, Optional
 from backend.llm_gateway import get_llm_gateway
 from backend.guardrails_manager import get_guardrails_manager
 from backend.websocket_server import get_websocket_server
+from backend.visualization_generator import VisualizationGenerator
+from backend.explanation_agent import TextExplanationAgent, AudioExplanationAgent
+
 
 
 class AgenticPlatform:
@@ -21,9 +24,6 @@ class AgenticPlatform:
     - WebSocket Server
     - Conversations and state management
     """
-    
-    from backend.visualization_generator import VisualizationGenerator
-    from backend.explanation_agent import TextExplanationAgent, AudioExplanationAgent
 
     def __init__(self):
         """Initialize platform."""

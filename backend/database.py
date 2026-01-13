@@ -24,13 +24,10 @@ def init_db():
             )
         ''')
         
-        # Create default admin if not exists
+        # Create or Update default admin for Demo
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = ?", ("admin",))
-        if not cur.fetchone():
-            cur.execute("INSERT INTO users (username, password, name, phone, country) VALUES (?, ?, ?, ?, ?)", 
-                       ("admin", "AgenticAI2026!", "Admin User", "0000000000", "US"))
-            print("✅ Default admin user created.")
+        cur.execute("INSERT OR REPLACE INTO users (id, username, password, name, phone, country) VALUES ((SELECT id FROM users WHERE username = 'admin'), 'admin', 'admin', 'Admin User', '0000000000', 'US')")
+        print("✅ Default admin user (admin/admin) ensured.")
             
     conn.close()
 

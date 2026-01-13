@@ -31,8 +31,15 @@ def register():
     phone = data.get("phone", None)
     country = data.get("country", None)
     
-    if not all([username, password, name, phone, country]):
-        return jsonify({"msg": "Missing required fields"}), 400
+    missing = []
+    if not username: missing.append("username")
+    if not password: missing.append("password")
+    if not name: missing.append("name")
+    if not phone: missing.append("phone")
+    if not country: missing.append("country")
+    
+    if missing:
+        return jsonify({"msg": f"Missing required fields: {', '.join(missing)}"}), 400
         
     if add_user(username, password, name, phone, country):
         return jsonify({"msg": "User created successfully"}), 201

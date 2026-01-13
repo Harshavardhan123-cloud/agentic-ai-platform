@@ -17,7 +17,10 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                name TEXT,
+                phone TEXT,
+                country TEXT
             )
         ''')
         
@@ -25,19 +28,19 @@ def init_db():
         cur = conn.cursor()
         cur.execute("SELECT * FROM users WHERE username = ?", ("admin",))
         if not cur.fetchone():
-            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
-                       ("admin", "AgenticAI2026!"))
+            cur.execute("INSERT INTO users (username, password, name, phone, country) VALUES (?, ?, ?, ?, ?)", 
+                       ("admin", "AgenticAI2026!", "Admin User", "0000000000", "US"))
             print("✅ Default admin user created.")
             
     conn.close()
 
-def add_user(username, password):
+def add_user(username, password, name, phone, country):
     """Add a new user."""
     try:
         conn = get_db_connection()
         with conn:
-            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
-                        (username, password))
+            conn.execute("INSERT INTO users (username, password, name, phone, country) VALUES (?, ?, ?, ?, ?)", 
+                        (username, password, name, phone, country))
         conn.close()
         return True
     except sqlite3.IntegrityError:

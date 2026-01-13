@@ -24,13 +24,17 @@ def setup_auth(app, jwt):
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """Register a new user."""
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
+    data = request.json
+    username = data.get("username", None)
+    password = data.get("password", None)
+    name = data.get("name", None)
+    phone = data.get("phone", None)
+    country = data.get("country", None)
     
-    if not username or not password:
-        return jsonify({"msg": "Missing username or password"}), 400
+    if not all([username, password, name, phone, country]):
+        return jsonify({"msg": "Missing required fields"}), 400
         
-    if add_user(username, password):
+    if add_user(username, password, name, phone, country):
         return jsonify({"msg": "User created successfully"}), 201
     else:
         return jsonify({"msg": "Username already exists"}), 409

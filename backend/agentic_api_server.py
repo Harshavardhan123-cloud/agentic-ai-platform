@@ -3,10 +3,6 @@
 Provides RESTful API endpoints for the Problem Solver feature.
 """
 
-# Monkey patch must be FIRST
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sys

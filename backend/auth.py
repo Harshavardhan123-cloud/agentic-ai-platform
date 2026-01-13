@@ -55,8 +55,12 @@ def login():
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
 
+    # DEBUG LOGS
+    print(f"Login Attempt: '{username}' / '{password}'")
+    
     # DEMO BYPASS: Allow admin/admin always
-    if username.strip() == "admin" and password.strip() == "admin":
+    if username and username.strip() == "admin" and password and password.strip() == "admin":
+        print("✅ Demo Admin Bypass Triggered")
         access_token = create_access_token(identity="admin")
         refresh_token = create_refresh_token(identity="admin")
         return jsonify({
@@ -66,7 +70,8 @@ def login():
         })
         
     if not verify_user(username, password):
-        return jsonify({"msg": "Bad username or password"}), 401
+        print("❌ Verify User Failed")
+        return jsonify({"msg": "Login Failed (Invalid Credentials)"}), 401
     
     access_token = create_access_token(identity=username)
     refresh_token = create_refresh_token(identity=username)

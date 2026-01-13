@@ -183,7 +183,7 @@ class LLMGateway:
             else:
                 prompt += f"{msg['content']}\n"
         
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
         
         response = model.generate_content(
             prompt,
@@ -204,7 +204,7 @@ class LLMGateway:
                 }
             }],
             'provider': 'gemini',
-            'model': 'gemini-1.5-flash'
+            'model': 'gemini-pro'
         }
     
     def _call_openai(

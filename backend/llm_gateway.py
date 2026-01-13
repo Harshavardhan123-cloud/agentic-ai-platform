@@ -32,7 +32,18 @@ class LLMGateway:
         """
         Generate completion using LLM.
         """
-        # Try Together AI first
+        # Try Groq (PRIORITY 1)
+        groq_key = os.getenv('GROQ_API_KEY')
+        if groq_key:
+            try:
+                # Note: model parameter is ignored by _call_groq in favor of 'llama-3.3-70b-versatile'
+                result = self._call_groq(messages, groq_key, temperature, max_tokens)
+                if result:
+                    return result
+            except Exception as e:
+                print(f"❌ Groq error: {e}")
+
+        # Try Together AI (PRIORITY 2)
         together_key = os.getenv('TOGETHER_API_KEY')
         if together_key:
             try:
@@ -42,17 +53,7 @@ class LLMGateway:
             except Exception as e:
                 print(f"❌ Together AI error: {e}")
         
-        # Try Groq
-        groq_key = os.getenv('GROQ_API_KEY')
-        if groq_key:
-            try:
-                result = self._call_groq(messages, groq_key, temperature, max_tokens)
-                if result:
-                    return result
-            except Exception as e:
-                print(f"❌ Groq error: {e}")
-        
-        # Try Gemini
+        # Try Gemini (PRIORITY 3)
         gemini_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
         if gemini_key:
             try:
@@ -62,7 +63,7 @@ class LLMGateway:
             except Exception as e:
                 print(f"❌ Gemini error: {e}")
         
-        # Try OpenAI as fallback
+        # Try OpenAI (PRIORITY 4 - Fallback)
         openai_key = os.getenv('OPENAI_API_KEY')
         if openai_key:
             try:

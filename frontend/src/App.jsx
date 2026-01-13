@@ -83,6 +83,8 @@ const AppContent = () => {
 
             {/* Content Area */}
             <main className="main-content">
+                {/* 1. Public Home - Always visible if active */}
+                {activeTab === 'home' && <Home onStart={handleTabChange} />}
 
                 {/* 3. Signup Page */}
                 {activeTab === 'signup' && <Signup onSwitchToLogin={() => setActiveTab('login')} onSwitchToHome={() => setActiveTab('home')} />}

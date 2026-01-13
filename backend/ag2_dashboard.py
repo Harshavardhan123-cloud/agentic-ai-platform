@@ -289,6 +289,17 @@ class VisualizationAgent(AG2Agent):
             return {"error": str(e)}
 
 
+class TextExplainerAgent(AG2Agent):
+    """Agent for text explanations."""
+    def __init__(self, llm_gateway=None):
+        super().__init__(name="TextExplainer", description="Generates detailed text analysis")
+
+class AudioExplainerAgent(AG2Agent):
+    """Agent for audio generation."""
+    def __init__(self, llm_gateway=None):
+        super().__init__(name="AudioExplainer", description="Generates audio walkthroughs")
+
+
 class AG2Dashboard:
     """
     Main Dashboard Controller for AG2 Multi-Agent System.
@@ -300,16 +311,6 @@ class AG2Dashboard:
     - Activity tracking
     """
     
-class TextExplainerAgent(AG2Agent):
-    """Agent for text explanations."""
-    def __init__(self, llm_gateway=None):
-        super().__init__(name="TextExplainer", description="Generates detailed text analysis")
-
-class AudioExplainerAgent(AG2Agent):
-    """Agent for audio generation."""
-    def __init__(self, llm_gateway=None):
-        super().__init__(name="AudioExplainer", description="Generates audio walkthroughs")
-
     def __init__(self, llm_gateway=None):
         self.start_time = datetime.now()
         self.llm_gateway = llm_gateway

@@ -171,16 +171,23 @@ class LLMGateway:
         """Call Google Gemini API."""
         print(f"🔑 Using Gemini key: ...{api_key[-8:]}")
         
-        from google import genai
-        from google.genai import types
+        import google.generativeai as genai
         
-        client = genai.Client(api_key=api_key)
-        prompt = messages[-1]['content'] if messages else ''
+        genai.configure(api_key=api_key)
         
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
+        # Build content from messages
+        prompt = ""
+        for msg in messages:
+            if msg['role'] == 'system':
+                prompt += f"Instructions: {msg['content']}\n\n"
+            else:
+                prompt += f"{msg['content']}\n"
+        
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens or 2000,
             )
@@ -197,7 +204,7 @@ class LLMGateway:
                 }
             }],
             'provider': 'gemini',
-            'model': 'gemini-2.0-flash'
+            'model': 'gemini-1.5-flash'
         }
     
     def _call_openai(

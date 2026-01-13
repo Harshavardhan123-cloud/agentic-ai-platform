@@ -1,0 +1,95 @@
+/* ==========================================================
+   TYPOGRAPHY & UI LANGUAGE REFERENCE
+   ========================================================== */
+
+/* ---------- FONT STRATEGY ---------- */
+/*
+Primary personality:
+- Clean
+- Modern
+- Tech-forward
+- Neutral but premium
+*/
+
+:root {
+    --font-ui: 'Inter', system-ui, sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', sans-serif;
+}
+
+/* ---------- BASE TEXT ---------- */
+body {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+}
+
+/* ---------- DISPLAY HEADINGS ---------- */
+.heading-hero {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.heading-section {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* ---------- BODY & META ---------- */
+.text-body {
+    font-size: 16px;
+    max-width: 560px;
+}
+
+.text-meta {
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+/* ---------- BUTTON SYSTEM ---------- */
+.btn {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-primary {
+    background: var(--theme-gradient-primary);
+    box-shadow: var(--theme-glow-soft);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--theme-glow-strong);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--theme-glass-border);
+}
+
+/* ---------- BADGES & TAGS ---------- */
+.ui-badge {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* ---------- INTERACTION PRINCIPLES ---------- */
+/*
+- No aggressive motion
+- Hover = lift + glow
+- Click = compress slightly
+- Everything feels floating
+*/

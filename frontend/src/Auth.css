@@ -4,22 +4,22 @@
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    background: var(--theme-bg-root);
+    background: #0f0c29;
 }
 
 /* Left Side - Hero Section */
 .auth-hero {
     flex: 1.5;
     position: relative;
-    background: var(--theme-bg-depth-1);
+    background: linear-gradient(135deg, #24243e 0%, #302b63 50%, #0f0c29 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    color: white;
     padding: 4rem;
     overflow: hidden;
-    /* Subtle gradient overlay */
-    background: radial-gradient(circle at bottom left, var(--theme-bg-depth-2), var(--theme-bg-root));
+    transition: all 0.5s ease;
 }
 
 /* Hero Content */
@@ -31,17 +31,20 @@
 }
 
 .hero-title {
-    /* Uses new theme utility */
-    composes: heading-hero from global;
+    font-size: 4rem;
+    font-weight: 800;
     margin-bottom: 1.5rem;
+    line-height: 1.1;
+    background: linear-gradient(45deg, #fff 30%, #a2a2d0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .hero-description {
     font-size: 1.25rem;
     line-height: 1.6;
-    color: var(--theme-text-muted);
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 2rem;
-    font-family: var(--font-ui);
 }
 
 /* Feature Badges */
@@ -53,14 +56,11 @@
 
 .feature-badge {
     padding: 0.8rem 1.5rem;
-    background: var(--theme-glass-bg);
-    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
     backdrop-filter: blur(10px);
-    border: 1px solid var(--theme-glass-border);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: 500;
-    font-size: 0.9rem;
-    color: var(--theme-text-main);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Right Side - Form Section */
@@ -69,11 +69,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(5, 7, 13, 0.95);
-    /* Nearly opaque on top of gradient */
+    background: rgba(15, 12, 41, 0.95);
     position: relative;
     padding: 2rem;
-    backdrop-filter: blur(20px);
+    transition: all 0.5s ease;
 }
 
 .auth-card {
@@ -91,11 +90,10 @@
     left: -10%;
     width: 400px;
     height: 400px;
-    background: var(--theme-glow-soft);
+    background: radial-gradient(circle, rgba(118, 75, 162, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
     border-radius: 50%;
-    filter: blur(60px);
+    filter: blur(40px);
     animation: float 6s ease-in-out infinite;
-    opacity: 0.6;
 }
 
 .auth-orb-2 {
@@ -104,23 +102,49 @@
     right: -5%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(45, 226, 255, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(100, 125, 238, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
     border-radius: 50%;
     filter: blur(50px);
     animation: float 8s ease-in-out infinite reverse;
 }
 
-/* Input Styles - reuse theme-input */
+/* Background Grid Overlay */
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+}
+
+/* Input Styles */
 .auth-input {
-    composes: theme-input from global;
+    width: 100%;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.auth-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #4facfe;
+    box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
 }
 
 .auth-label {
     display: block;
-    color: var(--theme-text-muted);
+    color: #ccc;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
-    font-weight: 500;
 }
 
 /* Responsive Styles */
@@ -139,6 +163,10 @@
         text-align: center;
     }
 
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
     .feature-badges {
         justify-content: center;
     }
@@ -146,5 +174,20 @@
     .auth-form-container {
         flex: 1;
         padding: 3rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .auth-hero {
+        padding: 2rem 1rem;
+        min-height: 250px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
     }
 }

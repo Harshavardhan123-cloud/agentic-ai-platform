@@ -4,6 +4,14 @@ import { useAuth } from './AuthContext'
 import Logo from './Logo'
 import UserAvatar from './UserAvatar'
 import './ProblemSolver.css'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CodeIcon from '@mui/icons-material/Code';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import DescriptionIcon from '@mui/icons-material/Description';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const ProblemSolver = () => {
     const [problemStatement, setProblemStatement] = useState('')

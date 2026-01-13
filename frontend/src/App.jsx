@@ -79,15 +79,17 @@ const AppContent = () => {
 
             {/* Content Area */}
             <main className="main-content">
-                {/* 1. Public Home - Always visible if active */}
-                {activeTab === 'home' && <Home onStart={handleTabChange} />}
+
+                {/* 3. Signup Page */}
+                {activeTab === 'signup' && <Signup onSwitchToLogin={() => setActiveTab('login')} />}
+
 
                 {/* 2. Login Page - Explicitly selected */}
-                {activeTab === 'login' && (!user ? <Login /> : <div className="already-logged-in">You are already logged in!</div>)}
+                {activeTab === 'login' && (!user ? <Login onSwitchToSignup={() => setActiveTab('signup')} /> : <div className="already-logged-in">You are already logged in!</div>)}
 
                 {/* 3. Protected Routes - Show Login if !user */}
-                {activeTab === 'problem-solver' && (user ? <ProblemSolver /> : <Login />)}
-                {activeTab === 'dashboard' && (user ? <Dashboard /> : <Login />)}
+                {activeTab === 'problem-solver' && (user ? <ProblemSolver /> : <Login onSwitchToSignup={() => setActiveTab('signup')} />)}
+                {activeTab === 'dashboard' && (user ? <Dashboard /> : <Login onSwitchToSignup={() => setActiveTab('signup')} />)}
             </main>
         </div>
     )

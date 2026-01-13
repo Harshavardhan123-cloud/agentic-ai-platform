@@ -76,7 +76,7 @@ const Login = () => {
                         </button>
 
                         <div style={{ textAlign: 'center', marginTop: '1rem', color: '#ccc' }}>
-                            Need an account? <span onClick={() => window.location.href = '/signup'} style={{ color: '#4facfe', cursor: 'pointer', textDecoration: 'underline' }}>Sign Up</span>
+                            Need an account? <span onClick={onSwitchToSignup} style={{ color: '#4facfe', cursor: 'pointer', textDecoration: 'underline' }}>Sign Up</span>
                         </div>
                     </form>
                 </div>

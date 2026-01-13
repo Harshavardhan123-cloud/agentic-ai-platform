@@ -27,6 +27,9 @@ const Home = ({ onStart }) => {
                 <div className="status-badge">
                     <span className={`status-dot ${serverStatus}`}></span>
                     Backend Status: {serverStatus.toUpperCase()}
+                    <span style={{ fontSize: '0.8em', opacity: 0.7, marginLeft: '10px' }}>
+                        ({API_BASE_URL.replace('https://', '')})
+                    </span>
                     {serverStatus === 'offline' && <span className="status-hint"> (Render free tier may take 50s to wake up)</span>}
                 </div>
 

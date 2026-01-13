@@ -68,6 +68,7 @@ if PLATFORM_AVAILABLE:
     dashboard = get_dashboard(platform.gateway)
     
     print("✅ Agentic Platform integrated with API server")
+    print("🔖 BUILD VERSION: 2026-01-13-v2 (Gemini Fix)")
     print("🤖 Using LLM for AI-powered code generation")
     print("📊 AG2 Dashboard initialized")
 

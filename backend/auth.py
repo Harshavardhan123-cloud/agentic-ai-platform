@@ -1,8 +1,3 @@
-"""Authentication module for Agentic AI Platform.
-
-Handles JWT token issuance, refresh, and protection.
-"""
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     create_access_token,
@@ -12,14 +7,10 @@ from flask_jwt_extended import (
     get_jwt
 )
 from datetime import timedelta
+from backend.database import verify_user, add_user
 
 # Create Blueprint
 auth_bp = Blueprint('auth', __name__)
-
-# Mock User Store (Replace with DB in production)
-USERS = {
-    "admin": "AgenticAI2026!"
-}
 
 def setup_auth(app, jwt):
     """Configure JWT settings."""
@@ -30,6 +21,20 @@ def setup_auth(app, jwt):
     # Register Blueprint
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    """Register a new user."""
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+    
+    if not username or not password:
+        return jsonify({"msg": "Missing username or password"}), 400
+        
+    if add_user(username, password):
+        return jsonify({"msg": "User created successfully"}), 201
+    else:
+        return jsonify({"msg": "Username already exists"}), 409
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """Authenticate user and return tokens."""
@@ -39,7 +44,7 @@ def login():
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
         
-    if username not in USERS or USERS[username] != password:
+    if not verify_user(username, password):
         return jsonify({"msg": "Bad username or password"}), 401
     
     access_token = create_access_token(identity=username)
@@ -48,7 +53,7 @@ def login():
     return jsonify({
         "access_token": access_token, 
         "refresh_token": refresh_token,
-        "user": {"username": username, "role": "admin"}
+        "user": {"username": username, "role": "user"}
     })
 
 @auth_bp.route('/refresh', methods=['POST'])

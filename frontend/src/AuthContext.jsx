@@ -47,6 +47,27 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const register = async (username, password) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                return { success: true };
+            } else {
+                return { success: false, error: data.msg || 'Registration failed' };
+            }
+        } catch (err) {
+            console.error("Registration error:", err);
+            return { success: false, error: "Connection error" };
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -64,6 +85,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         login,
+        register,
         logout,
         getAuthHeader
     };

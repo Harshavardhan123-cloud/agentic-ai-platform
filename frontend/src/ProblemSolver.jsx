@@ -22,7 +22,7 @@ const ProblemSolver = () => {
     const [audioScript, setAudioScript] = useState(null)
     const [loadingAudio, setLoadingAudio] = useState(false)
 
-    const { getAuthHeader } = useAuth()
+    // const { getAuthHeader } = useAuth() // Refactored below
 
     const getExplanation = async () => {
         if (!generatedCode) return;

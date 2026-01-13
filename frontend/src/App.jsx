@@ -3,6 +3,7 @@ import Home from './Home'
 import ProblemSolver from './ProblemSolver'
 import Dashboard from './Dashboard'
 import Login from './Login'
+import Signup from './Signup'
 import { AuthProvider, useAuth } from './AuthContext'
 import './App.css'
 

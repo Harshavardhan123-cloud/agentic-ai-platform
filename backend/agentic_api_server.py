@@ -24,6 +24,7 @@ try:
     from backend.complexity_analyzer import ComplexityAnalyzer
     from backend.ag2_dashboard import get_dashboard
     from backend.visualization_generator import VisualizationGenerator
+    from backend.auth import setup_auth  # Import Auth
     PLATFORM_AVAILABLE = True
 except ImportError as e:
     PLATFORM_AVAILABLE = False
@@ -31,12 +32,17 @@ except ImportError as e:
 
 # Create Flask app
 app = Flask(__name__)
+from flask_jwt_extended import JWTManager, jwt_required  # Import JWT
 
 # Configure CORS for both HTTP and WebSocket
 CORS(app, resources={
     r"/api/*": {"origins": "*"},
     r"/socket.io/*": {"origins": "*"}
 }, supports_credentials=True)
+
+# Initialize JWT
+jwt = JWTManager(app)
+setup_auth(app, jwt)
 
 # Initialize platform
 dashboard = None
@@ -89,6 +95,7 @@ if PLATFORM_AVAILABLE:
 # ============================================================================
 
 @app.route('/api/generate-code', methods=['POST'])
+@jwt_required()
 def generate_code():
     """Generate COMPLETE, WORKING code from problem statement."""
     if not PLATFORM_AVAILABLE:
@@ -204,6 +211,7 @@ def generate_code():
 
 
 @app.route('/api/analyze-complexity', methods=['POST'])
+@jwt_required()
 def analyze_complexity():
     """Analyze code complexity."""
     if not PLATFORM_AVAILABLE:
@@ -255,6 +263,7 @@ def analyze_complexity():
 
 
 @app.route('/api/suggest-optimization', methods=['POST'])
+@jwt_required()
 def suggest_optimization():
     """Generate optimization suggestion prompt."""
     if not PLATFORM_AVAILABLE:

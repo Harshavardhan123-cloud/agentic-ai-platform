@@ -78,7 +78,10 @@ const ProblemSolver = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/analyze-complexity`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
                 body: JSON.stringify({
                     code: code,
                     language: lang,

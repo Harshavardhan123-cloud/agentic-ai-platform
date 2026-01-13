@@ -82,7 +82,7 @@ const AppContent = () => {
             <main className="main-content">
 
                 {/* 3. Signup Page */}
-                {activeTab === 'signup' && <Signup onSwitchToLogin={() => setActiveTab('login')} />}
+                {activeTab === 'signup' && <Signup onSwitchToLogin={() => setActiveTab('login')} onSwitchToHome={() => setActiveTab('home')} />}
 
 
                 {/* 2. Login Page - Explicitly selected */}

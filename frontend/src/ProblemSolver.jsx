@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import AlgorithmVisualizer from './AlgorithmVisualizer'
 import { useAuth } from './AuthContext'
+import Logo from './Logo'
 import './ProblemSolver.css'
 
 const ProblemSolver = () => {

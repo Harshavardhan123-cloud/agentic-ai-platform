@@ -63,7 +63,17 @@ class LLMGateway:
             except Exception as e:
                 print(f"❌ Gemini error: {e}")
         
-        # Try OpenAI (PRIORITY 4 - Fallback)
+        # Try Hugging Face (PRIORITY 4 - Free!)
+        hf_key = os.getenv('HUGGINGFACE_API_KEY') or os.getenv('HF_API_KEY')
+        if hf_key:
+            try:
+                result = self._call_huggingface(messages, hf_key, temperature, max_tokens)
+                if result:
+                    return result
+            except Exception as e:
+                print(f"❌ Hugging Face error: {e}")
+        
+        # Try OpenAI (PRIORITY 5 - Fallback)
         openai_key = os.getenv('OPENAI_API_KEY')
         if openai_key:
             try:
@@ -74,12 +84,12 @@ class LLMGateway:
                 print(f"❌ OpenAI error: {e}")
         
         # No API available
-        print("⚠️ No LLM API available! Set TOGETHER_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY")
+        print("⚠️ No LLM API available! Set GROQ_API_KEY, TOGETHER_API_KEY, GEMINI_API_KEY, HUGGINGFACE_API_KEY, or OPENAI_API_KEY")
         return {
             'choices': [{
                 'message': {
                     'role': 'assistant',
-                    'content': 'Error: No LLM API key configured. Please set GROQ_API_KEY, TOGETHER_API_KEY, or OPENAI_API_KEY environment variable.'
+                    'content': 'Error: No LLM API key configured. Please set GROQ_API_KEY, TOGETHER_API_KEY, HUGGINGFACE_API_KEY, or OPENAI_API_KEY environment variable.'
                 }
             }],
             'provider': 'none',
@@ -240,6 +250,73 @@ class LLMGateway:
             }],
             'provider': 'openai',
             'model': 'gpt-4o-mini'
+        }
+    
+    def _call_huggingface(
+        self,
+        messages: List[Dict[str, str]],
+        api_key: str,
+        temperature: float,
+        max_tokens: Optional[int]
+    ) -> Optional[Dict[str, Any]]:
+        """Call Hugging Face Inference API with a free model."""
+        print(f"🔑 Using Hugging Face key: ...{api_key[-8:]}")
+        
+        import requests
+        
+        # Use Mistral 7B Instruct - a high quality free model
+        model_id = "mistralai/Mistral-7B-Instruct-v0.2"
+        api_url = f"https://api-inference.huggingface.co/models/{model_id}"
+        
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        # Build prompt from messages
+        prompt = ""
+        for msg in messages:
+            if msg['role'] == 'system':
+                prompt += f"[INST] {msg['content']} [/INST]\n"
+            elif msg['role'] == 'user':
+                prompt += f"[INST] {msg['content']} [/INST]\n"
+            else:
+                prompt += f"{msg['content']}\n"
+        
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": max_tokens or 2000,
+                "temperature": temperature,
+                "return_full_text": False
+            }
+        }
+        
+        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        # Handle different response formats
+        if isinstance(result, list) and len(result) > 0:
+            generated_text = result[0].get('generated_text', '')
+        elif isinstance(result, dict):
+            generated_text = result.get('generated_text', str(result))
+        else:
+            generated_text = str(result)
+        
+        self.stats['total_requests'] += 1
+        print(f"✅ Hugging Face call successful")
+        
+        return {
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': generated_text
+                }
+            }],
+            'provider': 'huggingface',
+            'model': model_id
         }
     
     def get_stats(self) -> Dict[str, Any]:

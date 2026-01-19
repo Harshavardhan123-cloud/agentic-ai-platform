@@ -74,7 +74,7 @@ if PLATFORM_AVAILABLE:
 
     # DEBUG: Print loaded keys (Safety first: only show presence or prefix)
     print("\n🔐 Environment Variable Check:")
-    for key in ['GROQ_API_KEY', 'TOGETHER_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY']:
+    for key in ['GROQ_API_KEY', 'TOGETHER_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY', 'HUGGINGFACE_API_KEY']:
         val = os.getenv(key)
         if val:
             print(f"   - {key}: FOUND (Starts with {val[:4]}...)")

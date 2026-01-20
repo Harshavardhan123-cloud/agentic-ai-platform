@@ -1,0 +1,45 @@
+{
+    "manifest_version": 3,
+    "name": "LeetCode AI Solver",
+    "version": "1.0.0",
+    "description": "Auto-generate code solutions for LeetCode, HackerRank, and CodeForces problems using AI",
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://leetcode.com/*",
+        "https://www.hackerrank.com/*",
+        "https://codeforces.com/*",
+        "https://agentic-ai-platform-1-e7zu.onrender.com/*"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://leetcode.com/problems/*",
+                "https://www.hackerrank.com/challenges/*",
+                "https://codeforces.com/problemset/problem/*",
+                "https://codeforces.com/contest/*/problem/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "content-styles.css"
+            ]
+        }
+    ],
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}

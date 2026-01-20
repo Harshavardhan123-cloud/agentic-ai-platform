@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode AI Solver</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🧠</span>
+                <span class="logo-text">LeetCode AI</span>
+            </div>
+            <div class="status" id="status">
+                <span class="status-dot"></span>
+                <span class="status-text">Ready</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Problem Section -->
+            <section class="problem-section">
+                <div class="section-header">
+                    <span class="section-icon">📝</span>
+                    <span class="section-title">Problem</span>
+                </div>
+                <div class="problem-content" id="problem-content">
+                    <p class="placeholder">Click "Extract Problem" or visit a LeetCode problem page</p>
+                </div>
+                <button class="btn btn-secondary" id="extract-btn">
+                    <span class="btn-icon">🔍</span>
+                    Extract Problem
+                </button>
+            </section>
+
+            <!-- Language Selector -->
+            <section class="language-section">
+                <label for="language-select">Language</label>
+                <select id="language-select">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                    <option value="typescript">TypeScript</option>
+                </select>
+            </section>
+
+            <!-- Generate Button -->
+            <button class="btn btn-primary" id="generate-btn" disabled>
+                <span class="btn-icon">⚡</span>
+                Generate Solution
+            </button>
+
+            <!-- Solution Section -->
+            <section class="solution-section" id="solution-section" style="display: none;">
+                <div class="section-header">
+                    <span class="section-icon">💡</span>
+                    <span class="section-title">Solution</span>
+                    <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+                        📋
+                    </button>
+                </div>
+                <pre class="code-block"><code id="solution-code"></code></pre>
+
+                <!-- Complexity -->
+                <div class="complexity-info" id="complexity-info"></div>
+            </section>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating solution...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error" id="error" style="display: none;">
+                <span class="error-icon">❌</span>
+                <span class="error-text" id="error-text"></span>
+            </div>
+        </main>
+
+        <footer>
+            <a href="https://tiny-bonbon-51a47d.netlify.app" target="_blank">Open Full App</a>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

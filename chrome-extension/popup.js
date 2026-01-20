@@ -1,0 +1,225 @@
+// LeetCode AI Solver - Popup Script
+
+const API_BASE = 'https://agentic-ai-platform-1-e7zu.onrender.com';
+
+// DOM Elements
+const extractBtn = document.getElementById('extract-btn');
+const generateBtn = document.getElementById('generate-btn');
+const copyBtn = document.getElementById('copy-btn');
+const problemContent = document.getElementById('problem-content');
+const solutionSection = document.getElementById('solution-section');
+const solutionCode = document.getElementById('solution-code');
+const complexityInfo = document.getElementById('complexity-info');
+const languageSelect = document.getElementById('language-select');
+const loading = document.getElementById('loading');
+const error = document.getElementById('error');
+const errorText = document.getElementById('error-text');
+const statusDot = document.querySelector('.status-dot');
+const statusText = document.querySelector('.status-text');
+
+let currentProblem = null;
+let authToken = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    // Try to get stored auth token
+    const stored = await chrome.storage.local.get(['authToken', 'lastProblem']);
+    authToken = stored.authToken;
+
+    if (stored.lastProblem) {
+        currentProblem = stored.lastProblem;
+        displayProblem(currentProblem);
+    }
+
+    // Auto-login if no token
+    if (!authToken) {
+        await autoLogin();
+    }
+
+    updateStatus(authToken ? 'connected' : 'disconnected');
+});
+
+// Auto-login with demo credentials
+async function autoLogin() {
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'admin', password: 'admin' })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            authToken = data.access_token;
+            await chrome.storage.local.set({ authToken });
+            updateStatus('connected');
+        }
+    } catch (err) {
+        console.error('Auto-login failed:', err);
+        updateStatus('disconnected');
+    }
+}
+
+// Extract problem from current tab
+extractBtn.addEventListener('click', async () => {
+    try {
+        showLoading(true);
+        hideError();
+
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        // Send message to content script
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
+
+        if (response && response.success) {
+            currentProblem = response.problem;
+            await chrome.storage.local.set({ lastProblem: currentProblem });
+            displayProblem(currentProblem);
+            generateBtn.disabled = false;
+        } else {
+            showError(response?.error || 'Could not extract problem. Make sure you are on a supported coding site.');
+        }
+    } catch (err) {
+        showError('Could not connect to page. Please refresh and try again.');
+        console.error(err);
+    } finally {
+        showLoading(false);
+    }
+});
+
+// Generate solution
+generateBtn.addEventListener('click', async () => {
+    if (!currentProblem) {
+        showError('Please extract a problem first');
+        return;
+    }
+
+    if (!authToken) {
+        await autoLogin();
+        if (!authToken) {
+            showError('Authentication failed. Please try again.');
+            return;
+        }
+    }
+
+    try {
+        showLoading(true);
+        hideError();
+        solutionSection.style.display = 'none';
+
+        const language = languageSelect.value;
+
+        // Call backend API
+        const response = await fetch(`${API_BASE}/api/generate-code`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                problem_statement: currentProblem.description,
+                language: language
+            })
+        });
+
+        if (response.status === 401) {
+            // Token expired, re-login
+            authToken = null;
+            await autoLogin();
+            showError('Session expired. Please try again.');
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.code) {
+            displaySolution(data);
+        } else {
+            showError(data.error || 'Failed to generate solution');
+        }
+    } catch (err) {
+        showError('Network error. Please check your connection.');
+        console.error(err);
+    } finally {
+        showLoading(false);
+    }
+});
+
+// Copy solution to clipboard
+copyBtn.addEventListener('click', async () => {
+    const code = solutionCode.textContent;
+    try {
+        await navigator.clipboard.writeText(code);
+        copyBtn.textContent = '✅';
+        setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+    } catch (err) {
+        console.error('Copy failed:', err);
+    }
+});
+
+// Display extracted problem
+function displayProblem(problem) {
+    problemContent.innerHTML = `
+    <h3 class="problem-title">${problem.title || 'Problem'}</h3>
+    <p class="problem-desc">${truncate(problem.description, 300)}</p>
+    ${problem.site ? `<span class="problem-site">${problem.site}</span>` : ''}
+  `;
+}
+
+// Display generated solution
+function displaySolution(data) {
+    solutionSection.style.display = 'block';
+    solutionCode.textContent = data.code;
+
+    // Syntax highlighting class
+    solutionCode.className = `language-${languageSelect.value}`;
+
+    // Show complexity if available
+    if (data.complexity) {
+        complexityInfo.innerHTML = `
+      <div class="complexity-item">
+        <span class="complexity-label">Time:</span>
+        <span class="complexity-value">${data.complexity.time || 'N/A'}</span>
+      </div>
+      <div class="complexity-item">
+        <span class="complexity-label">Space:</span>
+        <span class="complexity-value">${data.complexity.space || 'N/A'}</span>
+      </div>
+    `;
+        complexityInfo.style.display = 'flex';
+    } else {
+        complexityInfo.style.display = 'none';
+    }
+}
+
+// Utility functions
+function showLoading(show) {
+    loading.style.display = show ? 'flex' : 'none';
+    extractBtn.disabled = show;
+    generateBtn.disabled = show || !currentProblem;
+}
+
+function showError(message) {
+    errorText.textContent = message;
+    error.style.display = 'flex';
+}
+
+function hideError() {
+    error.style.display = 'none';
+}
+
+function updateStatus(status) {
+    if (status === 'connected') {
+        statusDot.style.background = '#10b981';
+        statusText.textContent = 'Connected';
+    } else {
+        statusDot.style.background = '#ef4444';
+        statusText.textContent = 'Disconnected';
+    }
+}
+
+function truncate(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}

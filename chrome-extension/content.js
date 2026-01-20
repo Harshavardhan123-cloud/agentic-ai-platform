@@ -50,11 +50,50 @@ function extractLeetCode() {
     const title = titleEl ? titleEl.textContent.trim() : 'LeetCode Problem';
     const description = cleanDescription(descriptionEl.innerText || descriptionEl.textContent);
 
+    // Extract function signature from code editor (Monaco)
+    let functionSignature = '';
+    let detectedLanguage = 'python';
+
+    // Try to get the code from Monaco editor
+    const codeLines = document.querySelectorAll('.view-lines .view-line');
+    if (codeLines.length > 0) {
+        functionSignature = Array.from(codeLines).map(line => line.textContent).join('\n').trim();
+
+        // Detect language from the code content
+        if (functionSignature.includes('vector<') || functionSignature.includes('int>')) {
+            detectedLanguage = 'cpp';
+        } else if (functionSignature.includes('def ') && functionSignature.includes('self')) {
+            detectedLanguage = 'python';
+        } else if (functionSignature.includes('public class') || functionSignature.includes('public int')) {
+            detectedLanguage = 'java';
+        } else if (functionSignature.includes('function') || functionSignature.includes('var ')) {
+            detectedLanguage = 'javascript';
+        }
+    }
+
+    // Also try the language selector dropdown
+    const langSelector = document.querySelector('[data-cy="lang-select"]') ||
+        document.querySelector('.ant-select-selection-item') ||
+        document.querySelector('button[id*="headlessui-listbox-button"]');
+    if (langSelector) {
+        const langText = langSelector.textContent.toLowerCase();
+        if (langText.includes('c++') || langText.includes('cpp')) detectedLanguage = 'cpp';
+        else if (langText.includes('python')) detectedLanguage = 'python';
+        else if (langText.includes('java') && !langText.includes('javascript')) detectedLanguage = 'java';
+        else if (langText.includes('javascript')) detectedLanguage = 'javascript';
+        else if (langText.includes('typescript')) detectedLanguage = 'typescript';
+        else if (langText.includes('go')) detectedLanguage = 'go';
+        else if (langText.includes('rust')) detectedLanguage = 'rust';
+        else if (langText.includes('c#')) detectedLanguage = 'csharp';
+    }
+
     return {
         success: true,
         problem: {
             title: title,
             description: description,
+            functionSignature: functionSignature,
+            detectedLanguage: detectedLanguage,
             site: 'LeetCode',
             url: window.location.href
         }

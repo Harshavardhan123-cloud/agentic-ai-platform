@@ -76,6 +76,15 @@ extractBtn.addEventListener('click', async () => {
             await chrome.storage.local.set({ lastProblem: currentProblem });
             displayProblem(currentProblem);
             generateBtn.disabled = false;
+
+            // Auto-select detected language
+            if (currentProblem.detectedLanguage) {
+                const langMap = { 'cpp': 'cpp', 'python': 'python', 'java': 'java', 'javascript': 'javascript', 'typescript': 'typescript', 'go': 'go', 'rust': 'rust', 'csharp': 'csharp' };
+                const mappedLang = langMap[currentProblem.detectedLanguage];
+                if (mappedLang && languageSelect.querySelector(`option[value="${mappedLang}"]`)) {
+                    languageSelect.value = mappedLang;
+                }
+            }
         } else {
             showError(response?.error || 'Could not extract problem. Make sure you are on a supported coding site.');
         }
@@ -117,7 +126,7 @@ generateBtn.addEventListener('click', async () => {
                 'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({
-                problem_statement: currentProblem.description,
+                problem_statement: buildPrompt(currentProblem, language),
                 language: language
             })
         });
@@ -159,11 +168,26 @@ copyBtn.addEventListener('click', async () => {
 
 // Display extracted problem
 function displayProblem(problem) {
+    const langBadge = problem.detectedLanguage ? `<span class="lang-badge">${problem.detectedLanguage.toUpperCase()}</span>` : '';
     problemContent.innerHTML = `
-    <h3 class="problem-title">${problem.title || 'Problem'}</h3>
+    <h3 class="problem-title">${problem.title || 'Problem'} ${langBadge}</h3>
     <p class="problem-desc">${truncate(problem.description, 300)}</p>
+    ${problem.functionSignature ? `<pre class="func-sig">${truncate(problem.functionSignature, 150)}</pre>` : ''}
     ${problem.site ? `<span class="problem-site">${problem.site}</span>` : ''}
   `;
+}
+
+// Build prompt with function signature context
+function buildPrompt(problem, language) {
+    let prompt = problem.description;
+
+    if (problem.functionSignature) {
+        prompt += `\n\n--- FUNCTION TEMPLATE (${language.toUpperCase()}) ---\n`;
+        prompt += problem.functionSignature;
+        prompt += `\n\nIMPORTANT: Generate code that FILLS IN the function body above. Return ONLY the complete implementation that fits this exact function signature. Do not change the class name or function signature.`;
+    }
+
+    return prompt;
 }
 
 // Display generated solution

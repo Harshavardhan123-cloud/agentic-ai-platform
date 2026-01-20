@@ -159,6 +159,32 @@ main {
     font-weight: 500;
 }
 
+.lang-badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--success);
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.func-sig {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    white-space: pre;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
 /* Language Selector */
 .language-section {
     display: flex;

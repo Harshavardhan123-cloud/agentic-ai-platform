@@ -184,7 +184,7 @@ function buildPrompt(problem, language) {
     if (problem.functionSignature) {
         prompt += `\n\n--- FUNCTION TEMPLATE (${language.toUpperCase()}) ---\n`;
         prompt += problem.functionSignature;
-        prompt += `\n\nIMPORTANT: Generate code that FILLS IN the function body above. Return ONLY the complete implementation that fits this exact function signature. Do not change the class name or function signature.`;
+        prompt += `\n\nIMPORTANT: Generate code that FILLS IN the function body above. Return ONLY the complete implementation that fits this exact function signature. Do not change the class name or function signature. DO NOT include any comments in the code.`;
     }
 
     return prompt;

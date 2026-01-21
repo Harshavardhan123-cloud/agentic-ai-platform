@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-// import './Auth.css'; // Removed in favor of global theme
 import Logo from './Logo';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
 import LoginIcon from '@mui/icons-material/Login';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
 const Login = ({ onSwitchToSignup }) => {
     const [username, setUsername] = useState('');
@@ -22,9 +23,55 @@ const Login = ({ onSwitchToSignup }) => {
         }
     };
 
+    // Social login handlers - redirect to OAuth providers
+    const handleGoogleLogin = () => {
+        // Google OAuth URL - Replace CLIENT_ID with your actual Google OAuth Client ID
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
+        const scope = encodeURIComponent('email profile');
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline`;
+        window.location.href = googleAuthUrl;
+    };
+
+    const handleGitHubLogin = () => {
+        // GitHub OAuth URL - Replace CLIENT_ID with your actual GitHub OAuth App Client ID
+        const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'YOUR_GITHUB_CLIENT_ID';
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
+        const scope = encodeURIComponent('user:email');
+        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+        window.location.href = githubAuthUrl;
+    };
+
+    const handleLinkedInLogin = () => {
+        // LinkedIn OAuth URL - Replace CLIENT_ID with your actual LinkedIn OAuth App Client ID
+        const clientId = import.meta.env.VITE_LINKEDIN_CLIENT_ID || 'YOUR_LINKEDIN_CLIENT_ID';
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
+        const scope = encodeURIComponent('r_liteprofile r_emailaddress');
+        const linkedinAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+        window.location.href = linkedinAuthUrl;
+    };
+
+    // Social button styles
+    const socialBtnStyle = {
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        border: '1px solid var(--border-subtle)',
+        background: 'rgba(255,255,255,0.03)',
+        color: 'var(--text-primary)',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        fontWeight: 500,
+        transition: 'all 0.2s ease'
+    };
+
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px', backgroundColor: 'var(--bg-app)' }}>
-            <div className="content-card" style={{ maxWidth: '400px', width: '100%', padding: '40px' }}>
+            <div className="content-card" style={{ maxWidth: '420px', width: '100%', padding: '40px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
                     <div style={{ marginBottom: '24px' }}>
                         <Logo size="large" />
@@ -83,7 +130,45 @@ const Login = ({ onSwitchToSignup }) => {
                         <LoginIcon fontSize="small" />
                     </button>
 
-                    <div className="separator" style={{ margin: '24px 0' }}></div>
+                    {/* Divider with "OR" */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '8px 0' }}>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }}></div>
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontWeight: 500 }}>OR CONTINUE WITH</span>
+                        <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }}></div>
+                    </div>
+
+                    {/* Social Login Buttons */}
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            style={{ ...socialBtnStyle }}
+                            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#ea4335'; e.currentTarget.style.background = 'rgba(234, 67, 53, 0.1)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                        >
+                            <GoogleIcon style={{ color: '#ea4335', fontSize: '20px' }} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleGitHubLogin}
+                            style={{ ...socialBtnStyle }}
+                            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#ffffff'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                        >
+                            <GitHubIcon style={{ color: '#ffffff', fontSize: '20px' }} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleLinkedInLogin}
+                            style={{ ...socialBtnStyle }}
+                            onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0a66c2'; e.currentTarget.style.background = 'rgba(10, 102, 194, 0.1)'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                        >
+                            <LinkedInIcon style={{ color: '#0a66c2', fontSize: '20px' }} />
+                        </button>
+                    </div>
+
+                    <div className="separator" style={{ margin: '16px 0' }}></div>
 
                     <div style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                         Don't have an account? <span onClick={onSwitchToSignup} style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' }}>Create Account</span>
@@ -91,7 +176,7 @@ const Login = ({ onSwitchToSignup }) => {
                 </form>
 
                 {/* Demo Credentials Hint */}
-                <div style={{ marginTop: '32px', padding: '16px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
+                <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
                     <div style={{ color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
                         Demo Credentials
@@ -107,3 +192,4 @@ const Login = ({ onSwitchToSignup }) => {
 };
 
 export default Login;
+

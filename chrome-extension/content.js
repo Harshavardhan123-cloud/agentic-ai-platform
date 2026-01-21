@@ -32,23 +32,45 @@ function extractProblem() {
 
 // LeetCode extractor
 function extractLeetCode() {
-    // Get problem title
+    console.log('Extracting from LeetCode...');
+
+    // Get problem title - try multiple selectors
     const titleEl = document.querySelector('[data-cy="question-title"]') ||
         document.querySelector('.text-title-large') ||
-        document.querySelector('div[class*="title"]');
+        document.querySelector('div[class*="title__"]') ||
+        document.querySelector('a[href*="/problems/"]') ||
+        document.querySelector('h4[class*="title"]');
 
     // Get problem description - LeetCode uses various selectors
     const descriptionEl = document.querySelector('[data-track-load="description_content"]') ||
-        document.querySelector('.elfjS') ||
+        document.querySelector('div[class*="elfjS"]') ||
+        document.querySelector('div[class*="_1l1MA"]') ||
+        document.querySelector('div[class*="content__"]') ||
         document.querySelector('[class*="description"]') ||
-        document.querySelector('.question-content');
+        document.querySelector('.question-content') ||
+        document.querySelector('div[data-key="description-content"]');
 
-    if (!descriptionEl) {
+    // Try even more aggressive fallback
+    let description = '';
+    if (descriptionEl) {
+        description = cleanDescription(descriptionEl.innerText || descriptionEl.textContent);
+    } else {
+        // Fallback: find any large text block that looks like a problem description
+        const allDivs = document.querySelectorAll('div');
+        for (const div of allDivs) {
+            const text = div.innerText || '';
+            if (text.length > 200 && (text.includes('Example') || text.includes('Input') || text.includes('Output'))) {
+                description = cleanDescription(text.substring(0, 1500));
+                break;
+            }
+        }
+    }
+
+    if (!description) {
         return { success: false, error: 'Could not find problem description. Please make sure the problem is fully loaded.' };
     }
 
     const title = titleEl ? titleEl.textContent.trim() : 'LeetCode Problem';
-    const description = cleanDescription(descriptionEl.innerText || descriptionEl.textContent);
 
     // Extract function signature from code editor (Monaco)
     let functionSignature = '';

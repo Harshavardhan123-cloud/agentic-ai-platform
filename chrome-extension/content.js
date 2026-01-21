@@ -76,37 +76,50 @@ async function autotypeCode(code) {
             console.warn('Clipboard write failed, trying fallback...', err);
         }
 
-        showToast('⚡ HRC AI: Attempting to type...');
+        showToast('⚡ HRC AI: Analyzing editor...');
 
         // 2. Try Script Injection for Monaco (Best for LeetCode)
-        // Increased timeout to prevent race condition where fallback types duplicate code
+        // We will try this first and wait for it.
         const injectedSuccess = await injectMonacoScript(code);
         if (injectedSuccess) {
-            showToast('✅ Code inserted via Monaco API!');
+            showToast('✅ Code replaced (Monaco API)');
             isAutoTyping = false;
             return { success: true, method: 'monaco-script' };
         }
+
+        // If we reached here, Monaco Injection failed.
+        showToast('⚠️ Monaco API failed. Using Fallback input...');
 
         // 3. Fallback: Find Editor and Dispatch Events
         const editor = findEditorInput();
         if (editor) {
             editor.focus();
 
-            // Critical: Select All first to overwrite and prevent duplicate nesting/indentation
-            // Try multiple methods to ensure everything is selected
+            // Critical: Select All first to overwrite
+            // Method A: Built-in select() for textareas
+            if (typeof editor.select === 'function') {
+                editor.select();
+            }
+
+            // Method B: execCommand
             document.execCommand('selectAll', false, null);
 
-            // Dispatch Ctrl+A for robust selection
-            editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
-            editor.dispatchEvent(new KeyboardEvent('keypress', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
-            editor.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
+            // Method C: Keyboard Shortcuts (Ctrl+A / Cmd+A)
+            const metaKey = navigator.platform.includes('Mac'); // Cmd on Mac, Ctrl otherwise
+            editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', ctrlKey: !metaKey, metaKey: metaKey, bubbles: true }));
+
+            await new Promise(r => setTimeout(r, 100)); // Wait for selection
+
+            // Delete content
+            document.execCommand('delete', false, null);
+            editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', code: 'Backspace', bubbles: true }));
+
+            // Clear value directly if possible (safest for standard inputs)
+            try { editor.value = ''; } catch (e) { }
 
             await new Promise(r => setTimeout(r, 50));
 
-            // Explicitly delete content
-            document.execCommand('delete', false, null);
-            editor.value = ''; // Try direct clear for standard textareas
-
+            // Insert new code
             // Try execCommand insertText (Modern browsers supported)
             const insertSuccess = document.execCommand('insertText', false, code);
 
@@ -123,13 +136,13 @@ async function autotypeCode(code) {
                 editor.dispatchEvent(pasteEvent);
             }
 
-            showToast('✅ Code typed!');
+            showToast('✅ Code typed (Fallback)');
             isAutoTyping = false;
             return { success: true, method: 'dom-fallback' };
         }
 
         // 4. Final Fallback: Manual Paste Guide
-        showToast('📋 Code copied! Press Ctrl+V to paste.', 5000);
+        showToast('📋 Code copied! Click editor and press Ctrl+V.', 4000);
         isAutoTyping = false;
         return { success: true, method: 'clipboard-guide' };
 
@@ -143,6 +156,8 @@ async function autotypeCode(code) {
 
 // Find the likely input element for the code editor
 function findEditorInput() {
+    // LeetCode specific: The hidden textarea often has class 'inputarea'
+    // but sometimes it's just a textarea inside .monaco-editor
     return document.querySelector('.monaco-editor textarea.inputarea') ||
         document.querySelector('.monaco-editor textarea') ||
         document.querySelector('.CodeMirror textarea') ||
@@ -153,25 +168,28 @@ function findEditorInput() {
 // Inject script to access proper window.monaco object
 async function injectMonacoScript(code) {
     return new Promise((resolve) => {
-        // Escape code for template string
         const safeCode = code.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
 
         const scriptContent = `
             (function() {
                 try {
+                    // Search for Monaco
                     if (window.monaco && window.monaco.editor) {
                         const editors = window.monaco.editor.getEditors();
-                        if (editors.length > 0) {
-                            const editor = editors[0];
+                        // Try to find the "main" editor (heuristics: not read-only, has model)
+                        for (let i = 0; i < editors.length; i++) {
+                            const editor = editors[i];
                             const model = editor.getModel();
-                            if (model) {
+                            // Check if model exists and is not disposed
+                            if (model && !model.isDisposed()) {
+                                // This is likely the one. Set value.
                                 model.setValue(\`${safeCode}\`);
                                 document.dispatchEvent(new CustomEvent('hrc-autotype-success'));
                                 return;
                             }
                         }
                     }
-                } catch(e) { console.error(e); }
+                } catch(e) { console.error("HRC Monaco Injection Error:", e); }
                 document.dispatchEvent(new CustomEvent('hrc-autotype-failed'));
             })();
         `;
@@ -179,33 +197,27 @@ async function injectMonacoScript(code) {
         const script = document.createElement('script');
         script.textContent = scriptContent;
 
-        const successHandler = () => {
-            cleanup();
-            resolve(true);
+        // Listeners for success/fail
+        let resolved = false;
+        const finish = (result) => {
+            if (resolved) return;
+            resolved = true;
+            if (script.parentNode) script.parentNode.removeChild(script);
+            document.removeEventListener('hrc-autotype-success', onSuccess);
+            document.removeEventListener('hrc-autotype-failed', onFailure);
+            resolve(result);
         };
 
-        const failHandler = () => {
-            cleanup();
-            resolve(false);
-        };
+        const onSuccess = () => finish(true);
+        const onFailure = () => finish(false);
 
-        const cleanup = () => {
-            document.removeEventListener('hrc-autotype-success', successHandler);
-            document.removeEventListener('hrc-autotype-failed', failHandler);
-            if (script.parentNode) script.remove();
-        };
-
-        document.addEventListener('hrc-autotype-success', successHandler);
-        document.addEventListener('hrc-autotype-failed', failHandler);
-
-        // Timeout if script is blocked or fails silently
-        // Increased to 2000ms to avoid race condition with fallback
-        setTimeout(() => {
-            cleanup();
-            resolve(false);
-        }, 2000);
+        document.addEventListener('hrc-autotype-success', onSuccess);
+        document.addEventListener('hrc-autotype-failed', onFailure);
 
         (document.head || document.documentElement).appendChild(script);
+
+        // Timeout 1.5s - fast enough to fallback if needed
+        setTimeout(() => finish(false), 1500);
     });
 }
 

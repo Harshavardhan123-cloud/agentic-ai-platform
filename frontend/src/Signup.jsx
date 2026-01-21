@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import Logo from './Logo';
-import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import PhoneIcon from '@mui/icons-material/Phone';
 import PublicIcon from '@mui/icons-material/Public';
@@ -16,7 +16,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
         name: '',
         phone: '',
         country: '',
-        username: '',
+        email: '',
         password: '',
         confirmPassword: ''
     });
@@ -140,9 +140,9 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
 
                     <div style={{ position: 'relative' }}>
                         <div style={{ position: 'absolute', top: '12px', left: '16px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
-                            <PersonIcon fontSize="small" />
+                            <EmailIcon fontSize="small" />
                         </div>
-                        <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Username" className="form-input" style={{ paddingLeft: '48px' }} required />
+                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" className="form-input" style={{ paddingLeft: '48px' }} required />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>

@@ -60,8 +60,13 @@ function showToast(message, duration = 3000) {
     }, duration);
 }
 
+let isAutoTyping = false;
+
 // Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
+    if (isAutoTyping) return { success: false, error: 'Already typing...' };
+    isAutoTyping = true;
+
     try {
         // 1. Always Copy to Clipboard first (Reliable Base)
         window.focus();
@@ -74,9 +79,11 @@ async function autotypeCode(code) {
         showToast('⚡ HRC AI: Attempting to type...');
 
         // 2. Try Script Injection for Monaco (Best for LeetCode)
+        // Increased timeout to prevent race condition where fallback types duplicate code
         const injectedSuccess = await injectMonacoScript(code);
         if (injectedSuccess) {
             showToast('✅ Code inserted via Monaco API!');
+            isAutoTyping = false;
             return { success: true, method: 'monaco-script' };
         }
 
@@ -106,16 +113,19 @@ async function autotypeCode(code) {
             }
 
             showToast('✅ Code typed!');
+            isAutoTyping = false;
             return { success: true, method: 'dom-fallback' };
         }
 
         // 4. Final Fallback: Manual Paste Guide
         showToast('📋 Code copied! Press Ctrl+V to paste.', 5000);
+        isAutoTyping = false;
         return { success: true, method: 'clipboard-guide' };
 
     } catch (e) {
         console.error("Auto-type error:", e);
         showToast('❌ Error: ' + e.message);
+        isAutoTyping = false;
         return { success: false, error: e.message };
     }
 }
@@ -178,10 +188,11 @@ async function injectMonacoScript(code) {
         document.addEventListener('hrc-autotype-failed', failHandler);
 
         // Timeout if script is blocked or fails silently
+        // Increased to 2000ms to avoid race condition with fallback
         setTimeout(() => {
             cleanup();
             resolve(false);
-        }, 500);
+        }, 2000);
 
         (document.head || document.documentElement).appendChild(script);
     });

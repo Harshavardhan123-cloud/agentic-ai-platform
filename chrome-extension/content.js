@@ -85,6 +85,10 @@ async function autotypeCode(code) {
         if (editor) {
             editor.focus();
 
+            // Critical: Select All first to overwrite and prevent duplicate nesting/indentation
+            document.execCommand('selectAll', false, null);
+            await new Promise(r => setTimeout(r, 50));
+
             // Try execCommand insertText (Modern browsers supported)
             const insertSuccess = document.execCommand('insertText', false, code);
 

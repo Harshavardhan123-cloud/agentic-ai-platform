@@ -20,73 +20,76 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Auto-type code into the code editor (bypasses paste detection)
 // Auto-type code into the code editor (bypasses paste detection)
+// Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
     try {
-        // Ensure the window has focus before we start
+        // Ensure window focus
         window.focus();
 
-        // Method 1: Try Monaco editor API (LeetCode uses Monaco)
-        // Accessing 'monaco' directly in content script context often fails due to isolation.
-        // We need to inject a script to access the page's window object if we really want to use Monaco API.
-        // For now, we'll stick to DOM manipulation which is safer in content scripts.
+        // METHOD 1: Script Injection to access window.monaco (The only way to effectively use Monaco API)
+        // We create a script element, inject it, and send a custom event with the code
+        const scriptContent = `
+            (function() {
+                function tryMonaco() {
+                    if (window.monaco && window.monaco.editor) {
+                        const editors = window.monaco.editor.getEditors();
+                        if (editors.length > 0) {
+                            const editor = editors[0]; // Usually the first one is the implementation editor
+                            const model = editor.getModel();
+                            if (model) {
+                                model.setValue(\`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
 
-        // Method 2: Robust Clipboard + Paste Simulation
+                function tryReactInput() {
+                    const activeElement = document.activeElement;
+                    if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                        nativeInputValueSetter.call(activeElement, \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
+                        
+                        const event = new Event('input', { bubbles: true});
+                        activeElement.dispatchEvent(event);
+                        return true;
+                    }
+                    return false;
+                }
 
-        // Step 2a: Copy to clipboard
-        try {
-            // Modern API
-            await navigator.clipboard.writeText(code);
-        } catch (clipboardErr) {
-            console.log('Modern clipboard failed:', clipboardErr);
-            // Fallback: Legacy execCommand with hidden textarea
-            const textArea = document.createElement("textarea");
-            textArea.value = code;
-            textArea.style.position = "fixed";  // Avoid scrolling to bottom
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.error('Legacy copy failed', err);
-                return { success: false, error: 'Could not copy code to clipboard.' };
-            } finally {
-                document.body.removeChild(textArea);
-            }
-        }
+                if (!tryMonaco()) {
+                    if (!tryReactInput()) {
+                        console.log("HRC AI: Could not auto-type using Monaco or React inputs.");
+                    }
+                }
+            })();
+        `;
 
-        // Step 2b: Paste into Editor
-        const monacoContainer = document.querySelector('.monaco-editor');
-        if (monacoContainer) {
-            const textarea = monacoContainer.querySelector('textarea.inputarea') ||
-                monacoContainer.querySelector('textarea');
-            if (textarea) {
-                textarea.focus();
+        const script = document.createElement('script');
+        script.textContent = scriptContent;
+        (document.head || document.documentElement).appendChild(script);
+        script.remove();
 
-                // Dispatch multiple paste events for robustness across browsers/editors
-                const pasteEvent = new ClipboardEvent('paste', {
-                    bubbles: true,
-                    cancelable: true,
-                    clipboardData: new DataTransfer()
-                });
-                pasteEvent.clipboardData.setData('text/plain', code);
-                textarea.dispatchEvent(pasteEvent);
-
-                // Also try execCommand for good measure if event didn't work
-                document.execCommand('insertText', false, code);
-
-                return { success: true, method: 'paste-event' };
-            }
-        }
-
-        // Method 3: Fallback message
-        return { success: true, method: 'clipboard-fallback' };
-
+        // Return success immediately as the injected script handles it. 
+        // We can't easily get the return value back from injected script without messaging.
+        // Assuming success if no error was thrown during injection.
+        return { success: true, method: 'script-injection' };
 
     } catch (e) {
         console.error("Auto-type error:", e);
-        return { success: false, error: e.message };
+
+        // Fallback: Clipboard + User Action
+        try {
+            await navigator.clipboard.writeText(code);
+            return {
+                success: false,
+                error: 'Auto-type limited. Code copied to clipboard - click editor and press Ctrl+V.',
+                fallback: true
+            };
+        } catch (clipErr) {
+            return { success: false, error: e.message };
+        }
     }
 }
 

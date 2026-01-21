@@ -18,79 +18,169 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep channel open for async response
 });
 
-// Auto-type code into the code editor (bypasses paste detection)
-// Auto-type code into the code editor (bypasses paste detection)
+// Show visual feedback on the page
+function showToast(message, duration = 3000) {
+    const existing = document.getElementById('hrc-ai-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'hrc-ai-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #0f0c29;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-family: sans-serif;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: 1px solid #7c3aed;
+        animation: slideIn 0.3s ease-out;
+    `;
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s';
+        setTimeout(() => toast.remove(), 500);
+    }, duration);
+}
+
 // Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
     try {
-        // Ensure window focus
+        // 1. Always Copy to Clipboard first (Reliable Base)
         window.focus();
+        try {
+            await navigator.clipboard.writeText(code);
+        } catch (err) {
+            console.warn('Clipboard write failed, trying fallback...', err);
+        }
 
-        // METHOD 1: Script Injection to access window.monaco (The only way to effectively use Monaco API)
-        // We create a script element, inject it, and send a custom event with the code
+        showToast('⚡ HRC AI: Attempting to type...');
+
+        // 2. Try Script Injection for Monaco (Best for LeetCode)
+        const injectedSuccess = await injectMonacoScript(code);
+        if (injectedSuccess) {
+            showToast('✅ Code inserted via Monaco API!');
+            return { success: true, method: 'monaco-script' };
+        }
+
+        // 3. Fallback: Find Editor and Dispatch Events
+        const editor = findEditorInput();
+        if (editor) {
+            editor.focus();
+
+            // Try execCommand insertText (Modern browsers supported)
+            const insertSuccess = document.execCommand('insertText', false, code);
+
+            if (!insertSuccess) {
+                // Try simulating Paste Event
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text/plain', code);
+                const pasteEvent = new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: dataTransfer,
+                    view: window
+                });
+                editor.dispatchEvent(pasteEvent);
+            }
+
+            showToast('✅ Code typed!');
+            return { success: true, method: 'dom-fallback' };
+        }
+
+        // 4. Final Fallback: Manual Paste Guide
+        showToast('📋 Code copied! Press Ctrl+V to paste.', 5000);
+        return { success: true, method: 'clipboard-guide' };
+
+    } catch (e) {
+        console.error("Auto-type error:", e);
+        showToast('❌ Error: ' + e.message);
+        return { success: false, error: e.message };
+    }
+}
+
+// Find the likely input element for the code editor
+function findEditorInput() {
+    return document.querySelector('.monaco-editor textarea.inputarea') ||
+        document.querySelector('.monaco-editor textarea') ||
+        document.querySelector('.CodeMirror textarea') ||
+        document.querySelector('textarea.ace_text-input') ||
+        document.querySelector('textarea');
+}
+
+// Inject script to access proper window.monaco object
+async function injectMonacoScript(code) {
+    return new Promise((resolve) => {
+        // Escape code for template string
+        const safeCode = code.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+
         const scriptContent = `
             (function() {
-                function tryMonaco() {
+                try {
                     if (window.monaco && window.monaco.editor) {
                         const editors = window.monaco.editor.getEditors();
                         if (editors.length > 0) {
-                            const editor = editors[0]; // Usually the first one is the implementation editor
+                            const editor = editors[0];
                             const model = editor.getModel();
                             if (model) {
-                                model.setValue(\`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
-                                return true;
+                                model.setValue(\`${safeCode}\`);
+                                document.dispatchEvent(new CustomEvent('hrc-autotype-success'));
+                                return;
                             }
                         }
                     }
-                    return false;
-                }
-
-                function tryReactInput() {
-                    const activeElement = document.activeElement;
-                    if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
-                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-                        nativeInputValueSetter.call(activeElement, \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
-                        
-                        const event = new Event('input', { bubbles: true});
-                        activeElement.dispatchEvent(event);
-                        return true;
-                    }
-                    return false;
-                }
-
-                if (!tryMonaco()) {
-                    if (!tryReactInput()) {
-                        console.log("HRC AI: Could not auto-type using Monaco or React inputs.");
-                    }
-                }
+                } catch(e) { console.error(e); }
+                document.dispatchEvent(new CustomEvent('hrc-autotype-failed'));
             })();
         `;
 
         const script = document.createElement('script');
         script.textContent = scriptContent;
+
+        const successHandler = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        const failHandler = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const cleanup = () => {
+            document.removeEventListener('hrc-autotype-success', successHandler);
+            document.removeEventListener('hrc-autotype-failed', failHandler);
+            if (script.parentNode) script.remove();
+        };
+
+        document.addEventListener('hrc-autotype-success', successHandler);
+        document.addEventListener('hrc-autotype-failed', failHandler);
+
+        // Timeout if script is blocked or fails silently
+        setTimeout(() => {
+            cleanup();
+            resolve(false);
+        }, 500);
+
         (document.head || document.documentElement).appendChild(script);
-        script.remove();
-
-        // Return success immediately as the injected script handles it. 
-        // We can't easily get the return value back from injected script without messaging.
-        // Assuming success if no error was thrown during injection.
-        return { success: true, method: 'script-injection' };
-
-    } catch (e) {
-        console.error("Auto-type error:", e);
-
-        // Fallback: Clipboard + User Action
-        try {
-            await navigator.clipboard.writeText(code);
-            return {
-                success: false,
-                error: 'Auto-type limited. Code copied to clipboard - click editor and press Ctrl+V.',
-                fallback: true
-            };
-        } catch (clipErr) {
-            return { success: false, error: e.message };
-        }
-    }
+    });
 }
 
 // Extract problem based on current site

@@ -124,26 +124,73 @@ function extractLeetCode() {
 
 // HackerRank extractor
 function extractHackerRank() {
+    console.log('Extracting from HackerRank...');
+
+    // Get problem title - multiple selectors for different HackerRank layouts
     const titleEl = document.querySelector('.challenge-view h2') ||
         document.querySelector('.challenge-name') ||
+        document.querySelector('.challenge-header h1') ||
+        document.querySelector('.challenge-body h1') ||
+        document.querySelector('h1.challenge-name') ||
         document.querySelector('h1');
 
+    // Get problem description - more selectors for hard problems
     const descriptionEl = document.querySelector('.challenge-body-html') ||
         document.querySelector('.problem-statement') ||
-        document.querySelector('.challenge-text');
+        document.querySelector('.challenge-text') ||
+        document.querySelector('.challenge-body') ||
+        document.querySelector('.problem-text') ||
+        document.querySelector('[class*="problem-statement"]') ||
+        document.querySelector('.hr-challenge-description');
 
-    if (!descriptionEl) {
-        return { success: false, error: 'Could not find problem description.' };
+    // Fallback: find text containing common problem keywords
+    let description = '';
+    if (descriptionEl) {
+        description = cleanDescription(descriptionEl.innerText || descriptionEl.textContent);
+    } else {
+        // Aggressive fallback for complex problems
+        const allDivs = document.querySelectorAll('div');
+        for (const div of allDivs) {
+            const text = div.innerText || '';
+            // Look for problem description patterns
+            if (text.length > 300 && (
+                text.includes('Input Format') ||
+                text.includes('Output Format') ||
+                text.includes('Sample Input') ||
+                text.includes('Constraints') ||
+                text.includes('Function Description')
+            )) {
+                description = cleanDescription(text.substring(0, 2000));
+                break;
+            }
+        }
+    }
+
+    if (!description) {
+        return { success: false, error: 'Could not find problem description. Try refreshing the page.' };
     }
 
     const title = titleEl ? titleEl.textContent.trim() : 'HackerRank Challenge';
-    const description = cleanDescription(descriptionEl.innerText || descriptionEl.textContent);
+
+    // Try to get code template
+    let functionSignature = '';
+    const codeEditor = document.querySelector('.monaco-editor .view-lines') ||
+        document.querySelector('.ace_content') ||
+        document.querySelector('.CodeMirror-code');
+
+    if (codeEditor) {
+        const codeLines = codeEditor.querySelectorAll('.view-line, .ace_line, .CodeMirror-line');
+        if (codeLines.length > 0) {
+            functionSignature = Array.from(codeLines).slice(0, 30).map(line => line.textContent).join('\n').trim();
+        }
+    }
 
     return {
         success: true,
         problem: {
             title: title,
             description: description,
+            functionSignature: functionSignature,
             site: 'HackerRank',
             url: window.location.href
         }

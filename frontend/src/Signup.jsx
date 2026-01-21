@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-// import './Auth.css'; // Removed
 import Logo from './Logo';
 import PersonIcon from '@mui/icons-material/Person';
 import LockIcon from '@mui/icons-material/Lock';
@@ -9,6 +8,8 @@ import PublicIcon from '@mui/icons-material/Public';
 import BadgeIcon from '@mui/icons-material/Badge';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
     const [formData, setFormData] = useState({
@@ -23,6 +24,17 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
     const [success, setSuccess] = useState('');
     const { register } = useAuth();
 
+    // Password validation rules
+    const passwordRules = [
+        { id: 'length', label: '8-20 characters', test: (p) => p.length >= 8 && p.length <= 20 },
+        { id: 'uppercase', label: 'Uppercase letter (A-Z)', test: (p) => /[A-Z]/.test(p) },
+        { id: 'lowercase', label: 'Lowercase letter (a-z)', test: (p) => /[a-z]/.test(p) },
+        { id: 'number', label: 'Number (0-9)', test: (p) => /[0-9]/.test(p) },
+        { id: 'special', label: 'Special character (!@#$%^&*)', test: (p) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(p) }
+    ];
+
+    const isPasswordValid = () => passwordRules.every(rule => rule.test(formData.password));
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -35,7 +47,13 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
         setError('');
         setSuccess('');
 
-        // Validation
+        // Password validation
+        if (!isPasswordValid()) {
+            setError("Password doesn't meet all requirements");
+            return;
+        }
+
+        // Passwords match check
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match");
             return;
@@ -132,7 +150,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                             <div style={{ position: 'absolute', top: '12px', left: '16px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
                                 <LockIcon fontSize="small" />
                             </div>
-                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="form-input" style={{ paddingLeft: '48px' }} required />
+                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="form-input" style={{ paddingLeft: '48px' }} required minLength="8" maxLength="20" />
                         </div>
                         <div style={{ position: 'relative' }}>
                             <div style={{ position: 'absolute', top: '12px', left: '16px', color: 'var(--text-tertiary)', pointerEvents: 'none' }}>
@@ -141,6 +159,35 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                             <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm" className="form-input" style={{ paddingLeft: '48px' }} required />
                         </div>
                     </div>
+
+                    {/* Password Requirements */}
+                    {formData.password && (
+                        <div style={{
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid var(--border-subtle)'
+                        }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '8px', fontWeight: 500 }}>Password Requirements</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                                {passwordRules.map(rule => (
+                                    <div key={rule.id} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        fontSize: '0.75rem',
+                                        color: rule.test(formData.password) ? '#10b981' : 'var(--text-tertiary)'
+                                    }}>
+                                        {rule.test(formData.password) ?
+                                            <CheckCircleIcon style={{ fontSize: '14px' }} /> :
+                                            <CancelIcon style={{ fontSize: '14px', opacity: 0.5 }} />
+                                        }
+                                        {rule.label}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <button type="submit" className="form-btn">
                         <span>Create Account</span>

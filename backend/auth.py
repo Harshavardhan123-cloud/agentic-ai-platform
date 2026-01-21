@@ -41,14 +41,15 @@ def setup_auth(app, jwt):
 def register():
     """Register a new user."""
     data = request.json
-    username = data.get("username", None)
+    # Accept both 'email' and 'username' for backward compatibility
+    email = data.get("email") or data.get("username", None)
     password = data.get("password", None)
     name = data.get("name", None)
     phone = data.get("phone", None)
     country = data.get("country", None)
     
     missing = []
-    if not username: missing.append("username")
+    if not email: missing.append("email")
     if not password: missing.append("password")
     if not name: missing.append("name")
     if not phone: missing.append("phone")
@@ -57,10 +58,10 @@ def register():
     if missing:
         return jsonify({"msg": f"Missing required fields: {', '.join(missing)}"}), 400
         
-    if add_user(username, password, name, phone, country):
+    if add_user(email, password, name, phone, country):
         return jsonify({"msg": "User created successfully"}), 201
     else:
-        return jsonify({"msg": "Username already exists"}), 409
+        return jsonify({"msg": "Email already registered"}), 409
 
 @auth_bp.route('/login', methods=['POST'])
 def login():

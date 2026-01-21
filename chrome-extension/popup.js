@@ -39,13 +39,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStatus(authToken ? 'connected' : 'disconnected');
 });
 
-// Auto-login with demo credentials
+// Hash password using SHA-256
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Auto-login with superuser credentials
 async function autoLogin() {
     try {
+        // Use superuser credentials (hashed)
+        const username = 'hrckkc@gmail.com';
+        const password = 'HRC@123$';
+        const hashedPassword = await hashPassword(password);
+
         const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: 'admin', password: 'admin' })
+            body: JSON.stringify({ username, password: hashedPassword })
         });
 
         if (response.ok) {
@@ -53,6 +67,9 @@ async function autoLogin() {
             authToken = data.access_token;
             await chrome.storage.local.set({ authToken });
             updateStatus('connected');
+        } else {
+            console.error('Login failed:', await response.text());
+            updateStatus('disconnected');
         }
     } catch (err) {
         console.error('Auto-login failed:', err);

@@ -93,8 +93,19 @@ async function autotypeCode(code) {
             editor.focus();
 
             // Critical: Select All first to overwrite and prevent duplicate nesting/indentation
+            // Try multiple methods to ensure everything is selected
             document.execCommand('selectAll', false, null);
+
+            // Dispatch Ctrl+A for robust selection
+            editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
+            editor.dispatchEvent(new KeyboardEvent('keypress', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
+            editor.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true }));
+
             await new Promise(r => setTimeout(r, 50));
+
+            // Explicitly delete content
+            document.execCommand('delete', false, null);
+            editor.value = ''; // Try direct clear for standard textareas
 
             // Try execCommand insertText (Modern browsers supported)
             const insertSuccess = document.execCommand('insertText', false, code);

@@ -182,10 +182,38 @@ generateBtn.addEventListener('click', async () => {
         });
 
         if (response.status === 401) {
-            // Token expired, re-login
+            // Token expired, re-login and retry
+            console.log('Token expired, re-authenticating...');
             authToken = null;
+            await chrome.storage.local.remove('authToken');
             await autoLogin();
-            showError('Session expired. Please try again.');
+
+            if (authToken) {
+                // Retry the request with new token
+                const retryResponse = await fetch(`${API_BASE}/api/generate-code`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        problem_statement: buildPrompt(currentProblem, language),
+                        language: language
+                    })
+                });
+
+                if (retryResponse.ok) {
+                    const retryData = await retryResponse.json();
+                    if (retryData.success && retryData.code) {
+                        displaySolution(retryData);
+                        showLoading(false);
+                        return;
+                    }
+                }
+            }
+
+            showError('Authentication failed. Please reload the extension.');
+            showLoading(false);
             return;
         }
 

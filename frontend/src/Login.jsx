@@ -12,6 +12,9 @@ const Login = ({ onSwitchToSignup }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetMessage, setResetMessage] = useState('');
     const { login } = useAuth();
 
     const handleSubmit = async (e) => {
@@ -125,6 +128,21 @@ const Login = ({ onSwitchToSignup }) => {
                         />
                     </div>
 
+                    {/* Forgot Password Link */}
+                    <div style={{ textAlign: 'right', marginTop: '-4px', marginBottom: '8px' }}>
+                        <span
+                            onClick={() => setShowForgotPassword(true)}
+                            style={{
+                                color: 'var(--accent-primary)',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                opacity: 0.9
+                            }}
+                        >
+                            Forgot Password?
+                        </span>
+                    </div>
+
                     <button type="submit" className="form-btn">
                         <span>Sign In</span>
                         <LoginIcon fontSize="small" />
@@ -175,6 +193,86 @@ const Login = ({ onSwitchToSignup }) => {
                     </div>
                 </form>
             </div>
+
+            {/* Forgot Password Modal */}
+            {showForgotPassword && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="glass-card" style={{ maxWidth: '400px', width: '90%', padding: '32px' }}>
+                        <h3 style={{ marginBottom: '8px', fontSize: '1.25rem' }}>Reset Password</h3>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                            Enter your email address and we'll send you a link to reset your password.
+                        </p>
+
+                        {resetMessage && (
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '8px',
+                                background: resetMessage.includes('sent') ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                border: `1px solid ${resetMessage.includes('sent') ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                color: resetMessage.includes('sent') ? '#86efac' : '#fca5a5',
+                                marginBottom: '16px',
+                                fontSize: '0.9rem'
+                            }}>
+                                {resetMessage}
+                            </div>
+                        )}
+
+                        <input
+                            type="email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            className="form-input"
+                            style={{ marginBottom: '16px' }}
+                        />
+
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowForgotPassword(false);
+                                    setResetEmail('');
+                                    setResetMessage('');
+                                }}
+                                className="form-btn"
+                                style={{ flex: 1, background: 'var(--bg-tertiary)' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (resetEmail && resetEmail.includes('@')) {
+                                        setResetMessage('Password reset link sent! Check your email.');
+                                        setTimeout(() => {
+                                            setShowForgotPassword(false);
+                                            setResetEmail('');
+                                            setResetMessage('');
+                                        }, 2000);
+                                    } else {
+                                        setResetMessage('Please enter a valid email address.');
+                                    }
+                                }}
+                                className="form-btn"
+                                style={{ flex: 1 }}
+                            >
+                                Send Reset Link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

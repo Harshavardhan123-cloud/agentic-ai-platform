@@ -20,50 +20,67 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
-    // Find the Monaco editor's hidden textarea
-    const editor = document.querySelector('.monaco-editor textarea.inputarea') ||
-        document.querySelector('.monaco-editor textarea') ||
-        document.querySelector('.ace_text-input') ||
-        document.querySelector('.CodeMirror textarea');
-
-    if (!editor) {
-        return { success: false, error: 'Could not find code editor. Please click inside the editor first!' };
-    }
-
     try {
-        // Focus the editor
-        editor.focus();
+        // Method 1: Try Monaco editor API (LeetCode uses Monaco)
+        if (typeof monaco !== 'undefined' && monaco.editor) {
+            const editors = monaco.editor.getEditors();
+            if (editors && editors.length > 0) {
+                const editor = editors[0];
+                const model = editor.getModel();
 
-        // Wait a bit for focus
-        await new Promise(r => setTimeout(r, 100));
+                // Replace all content using Monaco's API
+                const fullRange = model.getFullModelRange();
+                editor.executeEdits('autotype', [{
+                    range: fullRange,
+                    text: code,
+                    forceMoveMarkers: true
+                }]);
 
-        // Select all existing content
-        editor.select && editor.select();
-        document.execCommand('selectAll', false, null);
-
-        // Delete selected content
-        document.execCommand('delete', false, null);
-
-        // Wait a bit
-        await new Promise(r => setTimeout(r, 50));
-
-        // Insert new text in chunks (not character by character) 
-        // This is faster and avoids infinite loops
-        const chunkSize = 100;
-        for (let i = 0; i < code.length; i += chunkSize) {
-            const chunk = code.substring(i, Math.min(i + chunkSize, code.length));
-            document.execCommand('insertText', false, chunk);
-
-            // Small delay between chunks to not freeze
-            if (i + chunkSize < code.length) {
-                await new Promise(r => setTimeout(r, 5));
+                return { success: true, method: 'monaco-api' };
             }
         }
 
-        return { success: true };
+        // Method 2: Try using clipboard + paste simulation
+        await navigator.clipboard.writeText(code);
+
+        const monacoContainer = document.querySelector('.monaco-editor');
+        if (monacoContainer) {
+            const textarea = monacoContainer.querySelector('textarea.inputarea') ||
+                monacoContainer.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+                await new Promise(r => setTimeout(r, 100));
+
+                // Select all: Ctrl+A
+                document.execCommand('selectAll', false, null);
+                await new Promise(r => setTimeout(r, 50));
+
+                // Paste: Ctrl+V - use document.execCommand paste
+                const result = document.execCommand('paste', false, null);
+                if (result) {
+                    return { success: true, method: 'execCommand-paste' };
+                }
+            }
+        }
+
+        // Method 3: Alert user to paste manually
+        return {
+            success: false,
+            error: 'Auto-type not supported. Code copied to clipboard - press Ctrl+V to paste!'
+        };
+
     } catch (err) {
         console.error('Auto-type error:', err);
-        return { success: false, error: 'Failed to type code: ' + err.message };
+        // Copy to clipboard as fallback
+        try {
+            await navigator.clipboard.writeText(code);
+            return {
+                success: false,
+                error: 'Auto-type failed. Code copied to clipboard - press Ctrl+V to paste!'
+            };
+        } catch (e) {
+            return { success: false, error: 'Auto-type failed: ' + err.message };
+        }
     }
 }
 

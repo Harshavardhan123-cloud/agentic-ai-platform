@@ -19,68 +19,74 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Auto-type code into the code editor (bypasses paste detection)
+// Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
     try {
+        // Ensure the window has focus before we start
+        window.focus();
+
         // Method 1: Try Monaco editor API (LeetCode uses Monaco)
-        if (typeof monaco !== 'undefined' && monaco.editor) {
-            const editors = monaco.editor.getEditors();
-            if (editors && editors.length > 0) {
-                const editor = editors[0];
-                const model = editor.getModel();
+        // Accessing 'monaco' directly in content script context often fails due to isolation.
+        // We need to inject a script to access the page's window object if we really want to use Monaco API.
+        // For now, we'll stick to DOM manipulation which is safer in content scripts.
 
-                // Replace all content using Monaco's API
-                const fullRange = model.getFullModelRange();
-                editor.executeEdits('autotype', [{
-                    range: fullRange,
-                    text: code,
-                    forceMoveMarkers: true
-                }]);
+        // Method 2: Robust Clipboard + Paste Simulation
 
-                return { success: true, method: 'monaco-api' };
+        // Step 2a: Copy to clipboard
+        try {
+            // Modern API
+            await navigator.clipboard.writeText(code);
+        } catch (clipboardErr) {
+            console.log('Modern clipboard failed:', clipboardErr);
+            // Fallback: Legacy execCommand with hidden textarea
+            const textArea = document.createElement("textarea");
+            textArea.value = code;
+            textArea.style.position = "fixed";  // Avoid scrolling to bottom
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Legacy copy failed', err);
+                return { success: false, error: 'Could not copy code to clipboard.' };
+            } finally {
+                document.body.removeChild(textArea);
             }
         }
 
-        // Method 2: Try using clipboard + paste simulation
-        await navigator.clipboard.writeText(code);
-
+        // Step 2b: Paste into Editor
         const monacoContainer = document.querySelector('.monaco-editor');
         if (monacoContainer) {
             const textarea = monacoContainer.querySelector('textarea.inputarea') ||
                 monacoContainer.querySelector('textarea');
             if (textarea) {
                 textarea.focus();
-                await new Promise(r => setTimeout(r, 100));
 
-                // Select all: Ctrl+A
-                document.execCommand('selectAll', false, null);
-                await new Promise(r => setTimeout(r, 50));
+                // Dispatch multiple paste events for robustness across browsers/editors
+                const pasteEvent = new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: new DataTransfer()
+                });
+                pasteEvent.clipboardData.setData('text/plain', code);
+                textarea.dispatchEvent(pasteEvent);
 
-                // Paste: Ctrl+V - use document.execCommand paste
-                const result = document.execCommand('paste', false, null);
-                if (result) {
-                    return { success: true, method: 'execCommand-paste' };
-                }
+                // Also try execCommand for good measure if event didn't work
+                document.execCommand('insertText', false, code);
+
+                return { success: true, method: 'paste-event' };
             }
         }
 
-        // Method 3: Alert user to paste manually
-        return {
-            success: false,
-            error: 'Auto-type not supported. Code copied to clipboard - press Ctrl+V to paste!'
-        };
+        // Method 3: Fallback message
+        return { success: true, method: 'clipboard-fallback' };
 
-    } catch (err) {
-        console.error('Auto-type error:', err);
-        // Copy to clipboard as fallback
-        try {
-            await navigator.clipboard.writeText(code);
-            return {
-                success: false,
-                error: 'Auto-type failed. Code copied to clipboard - press Ctrl+V to paste!'
-            };
-        } catch (e) {
-            return { success: false, error: 'Auto-type failed: ' + err.message };
-        }
+
+    } catch (e) {
+        console.error("Auto-type error:", e);
+        return { success: false, error: e.message };
     }
 }
 

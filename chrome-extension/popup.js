@@ -2,7 +2,19 @@
 
 const API_BASE = 'https://agentic-ai-platform-1-e7zu.onrender.com';
 
-// DOM Elements
+// DOM Elements - Login
+const loginSection = document.getElementById('login-section');
+const loginForm = document.getElementById('login-form');
+const loginEmail = document.getElementById('login-email');
+const loginPassword = document.getElementById('login-password');
+const loginError = document.getElementById('login-error');
+const loginErrorText = document.getElementById('login-error-text');
+
+// DOM Elements - Main
+const mainContent = document.getElementById('main-content');
+const userBar = document.getElementById('user-bar');
+const userEmailSpan = document.getElementById('user-email');
+const logoutBtn = document.getElementById('logout-btn');
 const extractBtn = document.getElementById('extract-btn');
 const generateBtn = document.getElementById('generate-btn');
 const copyBtn = document.getElementById('copy-btn');
@@ -19,25 +31,7 @@ const statusText = document.querySelector('.status-text');
 
 let currentProblem = null;
 let authToken = null;
-
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
-    // Try to get stored auth token
-    const stored = await chrome.storage.local.get(['authToken', 'lastProblem']);
-    authToken = stored.authToken;
-
-    if (stored.lastProblem) {
-        currentProblem = stored.lastProblem;
-        displayProblem(currentProblem);
-    }
-
-    // Auto-login if no token
-    if (!authToken) {
-        await autoLogin();
-    }
-
-    updateStatus(authToken ? 'connected' : 'disconnected');
-});
+let currentUser = null;
 
 // Hash password using SHA-256
 async function hashPassword(password) {
@@ -48,34 +42,95 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Auto-login with superuser credentials
-async function autoLogin() {
+// Initialize - Check stored session
+document.addEventListener('DOMContentLoaded', async () => {
+    const stored = await chrome.storage.local.get(['authToken', 'currentUser', 'lastProblem']);
+
+    if (stored.authToken && stored.currentUser) {
+        authToken = stored.authToken;
+        currentUser = stored.currentUser;
+        showMainContent();
+    } else {
+        showLoginSection();
+    }
+
+    if (stored.lastProblem) {
+        currentProblem = stored.lastProblem;
+        displayProblem(currentProblem);
+    }
+});
+
+// Show/Hide sections
+function showLoginSection() {
+    loginSection.style.display = 'block';
+    mainContent.style.display = 'none';
+    updateStatus('disconnected');
+}
+
+function showMainContent() {
+    loginSection.style.display = 'none';
+    mainContent.style.display = 'block';
+    userEmailSpan.textContent = currentUser?.username || currentUser?.email || 'User';
+    updateStatus('connected');
+}
+
+// Login form submit
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+
+    if (!email || !password) {
+        showLoginError('Please enter email and password');
+        return;
+    }
+
     try {
-        // Use superuser credentials (hashed)
-        const username = 'hrckkc@gmail.com';
-        const password = 'HRC@123$';
+        loginError.style.display = 'none';
+
+        // Hash password before sending
         const hashedPassword = await hashPassword(password);
 
         const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password: hashedPassword })
+            body: JSON.stringify({ username: email, password: hashedPassword })
         });
 
-        if (response.ok) {
-            const data = await response.json();
+        const data = await response.json();
+
+        if (response.ok && data.access_token) {
             authToken = data.access_token;
-            await chrome.storage.local.set({ authToken });
-            updateStatus('connected');
+            currentUser = data.user;
+
+            await chrome.storage.local.set({
+                authToken: authToken,
+                currentUser: currentUser
+            });
+
+            showMainContent();
         } else {
-            console.error('Login failed:', await response.text());
-            updateStatus('disconnected');
+            showLoginError(data.msg || 'Login failed. Check your credentials.');
         }
     } catch (err) {
-        console.error('Auto-login failed:', err);
-        updateStatus('disconnected');
+        console.error('Login error:', err);
+        showLoginError('Connection error. Please try again.');
     }
+});
+
+function showLoginError(message) {
+    loginErrorText.textContent = message;
+    loginError.style.display = 'flex';
 }
+
+// Logout
+logoutBtn.addEventListener('click', async () => {
+    authToken = null;
+    currentUser = null;
+    await chrome.storage.local.remove(['authToken', 'currentUser']);
+    showLoginSection();
+});
 
 // Extract problem from current tab
 extractBtn.addEventListener('click', async () => {
@@ -95,14 +150,14 @@ extractBtn.addEventListener('click', async () => {
             return;
         }
 
-        // Try to inject content script first (in case it wasn't loaded)
+        // Try to inject content script first
         try {
             await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ['content.js']
             });
         } catch (e) {
-            console.log('Content script may already be injected or page not accessible');
+            console.log('Content script may already be injected');
         }
 
         // Send message to content script with retry
@@ -110,12 +165,11 @@ extractBtn.addEventListener('click', async () => {
         try {
             response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
         } catch (msgError) {
-            // Retry after a short delay
             await new Promise(r => setTimeout(r, 500));
             try {
                 response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
             } catch (retryError) {
-                showError('Content script not loaded. Please refresh the page and try again.');
+                showError('Please refresh the page and try again.');
                 showLoading(false);
                 return;
             }
@@ -127,7 +181,6 @@ extractBtn.addEventListener('click', async () => {
             displayProblem(currentProblem);
             generateBtn.disabled = false;
 
-            // Auto-select detected language
             if (currentProblem.detectedLanguage) {
                 const langMap = { 'cpp': 'cpp', 'python': 'python', 'java': 'java', 'javascript': 'javascript', 'typescript': 'typescript', 'go': 'go', 'rust': 'rust', 'csharp': 'csharp' };
                 const mappedLang = langMap[currentProblem.detectedLanguage];
@@ -136,10 +189,10 @@ extractBtn.addEventListener('click', async () => {
                 }
             }
         } else {
-            showError(response?.error || 'Could not extract problem. Make sure you are on a supported coding site.');
+            showError(response?.error || 'Could not extract problem.');
         }
     } catch (err) {
-        showError('Could not connect to page. Please refresh and try again.');
+        showError('Error extracting problem. Please try again.');
         console.error(err);
     } finally {
         showLoading(false);
@@ -154,11 +207,8 @@ generateBtn.addEventListener('click', async () => {
     }
 
     if (!authToken) {
-        await autoLogin();
-        if (!authToken) {
-            showError('Authentication failed. Please try again.');
-            return;
-        }
+        showLoginSection();
+        return;
     }
 
     try {
@@ -168,7 +218,6 @@ generateBtn.addEventListener('click', async () => {
 
         const language = languageSelect.value;
 
-        // Call backend API
         const response = await fetch(`${API_BASE}/api/generate-code`, {
             method: 'POST',
             headers: {
@@ -182,37 +231,12 @@ generateBtn.addEventListener('click', async () => {
         });
 
         if (response.status === 401) {
-            // Token expired, re-login and retry
-            console.log('Token expired, re-authenticating...');
+            // Session expired - show login
             authToken = null;
-            await chrome.storage.local.remove('authToken');
-            await autoLogin();
-
-            if (authToken) {
-                // Retry the request with new token
-                const retryResponse = await fetch(`${API_BASE}/api/generate-code`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({
-                        problem_statement: buildPrompt(currentProblem, language),
-                        language: language
-                    })
-                });
-
-                if (retryResponse.ok) {
-                    const retryData = await retryResponse.json();
-                    if (retryData.success && retryData.code) {
-                        displaySolution(retryData);
-                        showLoading(false);
-                        return;
-                    }
-                }
-            }
-
-            showError('Authentication failed. Please reload the extension.');
+            currentUser = null;
+            await chrome.storage.local.remove(['authToken', 'currentUser']);
+            showLoginSection();
+            showLoginError('Session expired. Please login again.');
             showLoading(false);
             return;
         }
@@ -272,11 +296,8 @@ function buildPrompt(problem, language) {
 function displaySolution(data) {
     solutionSection.style.display = 'block';
     solutionCode.textContent = data.code;
-
-    // Syntax highlighting class
     solutionCode.className = `language-${languageSelect.value}`;
 
-    // Show complexity if available
     if (data.complexity) {
         complexityInfo.innerHTML = `
       <div class="complexity-item">
@@ -316,7 +337,7 @@ function updateStatus(status) {
         statusText.textContent = 'Connected';
     } else {
         statusDot.style.background = '#ef4444';
-        statusText.textContent = 'Disconnected';
+        statusText.textContent = 'Not logged in';
     }
 }
 

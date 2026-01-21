@@ -1,4 +1,4 @@
-// LeetCode AI Solver - Popup Script
+// HRC AI - Popup Script
 
 const API_BASE = 'https://agentic-ai-platform-1-e7zu.onrender.com';
 
@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showLoginSection() {
     loginSection.style.display = 'block';
     mainContent.style.display = 'none';
+    loginError.style.display = 'none';  // Clear any previous error
     updateStatus('disconnected');
 }
 

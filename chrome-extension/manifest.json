@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "LeetCode AI Solver",
+    "name": "HRC AI",
     "version": "1.0.0",
-    "description": "Auto-generate code solutions for LeetCode, HackerRank, and CodeForces problems using AI",
+    "description": "AI-powered code solution generator for LeetCode, HackerRank, and CodeForces problems",
     "permissions": [
         "activeTab",
         "storage",

@@ -1,14 +1,87 @@
-// LeetCode AI Solver - Content Script
-// Extracts problem information from coding websites
+// HRC AI - Content Script
+// Extracts problem information and handles auto-typing
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'extractProblem') {
         const problem = extractProblem();
         sendResponse(problem);
+    } else if (request.action === 'autotype') {
+        // Auto-type code into the editor
+        autotypeCode(request.code).then(result => {
+            sendResponse(result);
+        }).catch(err => {
+            sendResponse({ success: false, error: err.message });
+        });
+        return true; // Keep channel open for async
     }
     return true; // Keep channel open for async response
 });
+
+// Auto-type code into the code editor (bypasses paste detection)
+async function autotypeCode(code) {
+    // Find the Monaco editor or other code editors
+    const editor = document.querySelector('.monaco-editor textarea') ||
+        document.querySelector('.ace_text-input') ||
+        document.querySelector('.CodeMirror textarea') ||
+        document.activeElement;
+
+    if (!editor || editor.tagName === 'BODY') {
+        return { success: false, error: 'Please click inside the code editor first!' };
+    }
+
+    // Focus the editor
+    editor.focus();
+
+    // Clear existing content (Ctrl+A, then start typing)
+    document.execCommand('selectAll', false, null);
+
+    // Type code character by character (fast but not instant to appear natural)
+    const typeDelay = 1; // 1ms per character for fast typing
+
+    for (let i = 0; i < code.length; i++) {
+        const char = code[i];
+
+        // Create and dispatch keyboard events
+        const keydownEvent = new KeyboardEvent('keydown', {
+            key: char,
+            code: `Key${char.toUpperCase()}`,
+            charCode: char.charCodeAt(0),
+            keyCode: char.charCodeAt(0),
+            which: char.charCodeAt(0),
+            bubbles: true
+        });
+
+        const keypressEvent = new KeyboardEvent('keypress', {
+            key: char,
+            charCode: char.charCodeAt(0),
+            keyCode: char.charCodeAt(0),
+            which: char.charCodeAt(0),
+            bubbles: true
+        });
+
+        const inputEvent = new InputEvent('input', {
+            inputType: 'insertText',
+            data: char,
+            bubbles: true
+        });
+
+        editor.dispatchEvent(keydownEvent);
+        editor.dispatchEvent(keypressEvent);
+
+        // Use execCommand for actual text insertion (works with Monaco)
+        document.execCommand('insertText', false, char);
+
+        editor.dispatchEvent(inputEvent);
+
+        // Small delay every 50 characters to not freeze the browser
+        if (i % 50 === 0) {
+            await new Promise(r => setTimeout(r, typeDelay));
+        }
+    }
+
+    return { success: true };
+}
 
 // Extract problem based on current site
 function extractProblem() {

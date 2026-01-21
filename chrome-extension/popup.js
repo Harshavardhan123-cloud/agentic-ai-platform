@@ -300,46 +300,51 @@ copyBtn.addEventListener('click', async () => {
 
 // Auto-Type solution into editor (bypasses paste detection)
 const autotypeBtn = document.getElementById('autotype-btn');
-autotypeBtn.addEventListener('click', async () => {
-    const code = solutionCode.textContent;
-    if (!code) return;
+if (autotypeBtn) {
+    autotypeBtn.addEventListener('click', async () => {
+        const code = solutionCode.textContent;
+        if (!code) return;
 
-    autotypeBtn.textContent = '⏳';
-    autotypeBtn.disabled = true;
+        autotypeBtn.textContent = '⏳';
+        autotypeBtn.disabled = true;
 
-    try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-        // Send code to content script for typing
-        chrome.tabs.sendMessage(tab.id, {
-            action: 'autotype',
-            code: code
-        }, (response) => {
-            if (response?.success) {
-                autotypeBtn.textContent = '✅';
-                setTimeout(() => {
-                    autotypeBtn.textContent = '⌨️';
-                    autotypeBtn.disabled = false;
-                }, 2000);
-            } else {
-                autotypeBtn.textContent = '❌';
-                showError(response?.error || 'Auto-type failed. Make sure the code editor is focused.');
-                setTimeout(() => {
-                    autotypeBtn.textContent = '⌨️';
-                    autotypeBtn.disabled = false;
-                }, 2000);
-            }
-        });
-    } catch (err) {
-        console.error('Auto-type error:', err);
-        autotypeBtn.textContent = '❌';
-        showError('Auto-type failed. Please try again.');
-        setTimeout(() => {
-            autotypeBtn.textContent = '⌨️';
-            autotypeBtn.disabled = false;
-        }, 2000);
-    }
-});
+            // Send code to content script for typing
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'autotype',
+                code: code
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.log('Message error:', chrome.runtime.lastError);
+                }
+                if (response?.success) {
+                    autotypeBtn.textContent = '✅';
+                    setTimeout(() => {
+                        autotypeBtn.textContent = '⌨️';
+                        autotypeBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    autotypeBtn.textContent = '❌';
+                    showError(response?.error || 'Auto-type failed. Make sure the code editor is focused.');
+                    setTimeout(() => {
+                        autotypeBtn.textContent = '⌨️';
+                        autotypeBtn.disabled = false;
+                    }, 2000);
+                }
+            });
+        } catch (err) {
+            console.error('Auto-type error:', err);
+            autotypeBtn.textContent = '❌';
+            showError('Auto-type failed. Please try again.');
+            setTimeout(() => {
+                autotypeBtn.textContent = '⌨️';
+                autotypeBtn.disabled = false;
+            }, 2000);
+        }
+    });
+}
 
 // Display extracted problem
 function displayProblem(problem) {

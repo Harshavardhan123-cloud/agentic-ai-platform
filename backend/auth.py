@@ -31,8 +31,8 @@ def setup_auth(app, jwt):
     app.config["JWT_COOKIE_SAMESITE"] = "Lax"  # Prevents CSRF from other domains
     app.config["JWT_ACCESS_COOKIE_NAME"] = "access_token_cookie"
     app.config["JWT_REFRESH_COOKIE_NAME"] = "refresh_token_cookie"
-    app.config["JWT_COOKIE_CSRF_PROTECT"] = True  # CSRF protection enabled
-    app.config["JWT_CSRF_IN_COOKIES"] = True  # Send CSRF token in cookies
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Disabled - header-based auth is already CSRF-safe
+    app.config["JWT_CSRF_IN_COOKIES"] = False
     
     # Register Blueprint
     app.register_blueprint(auth_bp, url_prefix='/api/auth')

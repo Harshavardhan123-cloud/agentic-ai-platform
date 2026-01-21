@@ -125,10 +125,14 @@ loginForm.addEventListener('submit', async (e) => {
             authToken = data.access_token;
             currentUser = data.user;
 
+            console.log('Login successful, token:', authToken.substring(0, 30) + '...');
+
             await chrome.storage.local.set({
                 authToken: authToken,
                 currentUser: currentUser
             });
+
+            console.log('Token stored in chrome.storage');
 
             showMainContent();
         } else {
@@ -239,6 +243,8 @@ generateBtn.addEventListener('click', async () => {
 
         const language = languageSelect.value;
 
+        console.log('Generating with token:', authToken ? authToken.substring(0, 30) + '...' : 'NO TOKEN!');
+
         const response = await fetch(`${API_BASE}/api/generate-code`, {
             method: 'POST',
             headers: {
@@ -251,7 +257,10 @@ generateBtn.addEventListener('click', async () => {
             })
         });
 
+        console.log('Generate response status:', response.status);
+
         if (response.status === 401) {
+            console.log('Got 401 - token rejected');
             // Session expired - show login
             authToken = null;
             currentUser = null;

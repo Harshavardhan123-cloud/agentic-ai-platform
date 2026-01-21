@@ -42,14 +42,34 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Initialize - Check stored session
+// Initialize - Check stored session and validate token
 document.addEventListener('DOMContentLoaded', async () => {
     const stored = await chrome.storage.local.get(['authToken', 'currentUser', 'lastProblem']);
 
     if (stored.authToken && stored.currentUser) {
-        authToken = stored.authToken;
-        currentUser = stored.currentUser;
-        showMainContent();
+        // Validate the stored token by making a test request
+        try {
+            const testResponse = await fetch(`${API_BASE}/api/auth/protected`, {
+                headers: { 'Authorization': `Bearer ${stored.authToken}` }
+            });
+
+            if (testResponse.ok) {
+                authToken = stored.authToken;
+                currentUser = stored.currentUser;
+                showMainContent();
+            } else {
+                // Token expired or invalid - clear and show login
+                console.log('Stored token expired, clearing session');
+                await chrome.storage.local.remove(['authToken', 'currentUser']);
+                showLoginSection();
+            }
+        } catch (err) {
+            console.error('Token validation failed:', err);
+            // Network error - try using stored token anyway
+            authToken = stored.authToken;
+            currentUser = stored.currentUser;
+            showMainContent();
+        }
     } else {
         showLoginSection();
     }

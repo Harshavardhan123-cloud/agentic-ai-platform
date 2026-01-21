@@ -72,20 +72,23 @@ def login():
         return jsonify({"msg": "Missing username or password"}), 400
 
     # DEBUG LOGS
-    print(f"Login Attempt: '{username}' / '{password}'")
+    print(f"Login Attempt: '{username}' / '***'")
     
-    # DEMO BYPASS: Allow admin/admin always
-    if username and username.strip() == "admin" and password and password.strip() == "admin":
-        print("✅ Demo Admin Bypass Triggered")
-        access_token = create_access_token(identity="admin")
-        refresh_token = create_refresh_token(identity="admin")
+    # SUPERUSER: Check for superuser credentials from environment
+    superuser_name = os.getenv("SUPERUSER_USERNAME", "superadmin")
+    superuser_pass = os.getenv("SUPERUSER_PASSWORD", "SuperSecure@2026")
+    
+    if username and username.strip() == superuser_name and password and password.strip() == superuser_pass:
+        print("✅ Superuser Login Successful")
+        access_token = create_access_token(identity=superuser_name)
+        refresh_token = create_refresh_token(identity=superuser_name)
         
         # Create response with cookies
         response = jsonify({
             "msg": "Login successful",
-            "access_token": access_token,  # Also include in body for backward compatibility
+            "access_token": access_token,
             "refresh_token": refresh_token,
-            "user": {"username": "admin", "role": "admin"}
+            "user": {"username": superuser_name, "role": "superadmin"}
         })
         
         # Set HTTP-only cookies

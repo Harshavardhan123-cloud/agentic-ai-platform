@@ -174,18 +174,6 @@ const Login = ({ onSwitchToSignup }) => {
                         Don't have an account? <span onClick={onSwitchToSignup} style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' }}>Create Account</span>
                     </div>
                 </form>
-
-                {/* Demo Credentials Hint */}
-                <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
-                    <div style={{ color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
-                        Demo Credentials
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)' }}>
-                        <span>user: <strong style={{ color: 'var(--text-primary)' }}>admin</strong></span>
-                        <span>pass: <strong style={{ color: 'var(--text-primary)' }}>admin</strong></span>
-                    </div>
-                </div>
             </div>
         </div>
     );

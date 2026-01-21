@@ -58,10 +58,11 @@ def register():
     if missing:
         return jsonify({"msg": f"Missing required fields: {', '.join(missing)}"}), 400
         
-    if add_user(email, password, name, phone, country):
+    result = add_user(email, password, name, phone, country)
+    if result.get("success"):
         return jsonify({"msg": "User created successfully"}), 201
     else:
-        return jsonify({"msg": "Email already registered"}), 409
+        return jsonify({"msg": result.get("error", "Registration failed")}), 409
 
 @auth_bp.route('/login', methods=['POST'])
 def login():

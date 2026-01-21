@@ -40,18 +40,32 @@ def init_db():
         print(f"DB Init Error: {e}")
 
 def add_user(username, password, name, phone, country):
-    """Add a new user."""
+    """Add a new user with duplicate checking."""
     try:
         conn = get_db_connection()
+        
+        # Check for existing email/username
+        existing_email = conn.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+        if existing_email:
+            conn.close()
+            return {"success": False, "error": "Email already registered"}
+        
+        # Check for existing phone
+        existing_phone = conn.execute("SELECT id FROM users WHERE phone = ?", (phone,)).fetchone()
+        if existing_phone:
+            conn.close()
+            return {"success": False, "error": "Phone number already registered"}
+        
+        # Insert new user
         with conn:
             conn.execute("INSERT INTO users (username, password, name, phone, country) VALUES (?, ?, ?, ?, ?)", 
                         (username, password, name, phone, country))
         conn.close()
-        return True
-    except sqlite3.IntegrityError:
-        return False
-    except Exception:
-        return False
+        return {"success": True}
+    except sqlite3.IntegrityError as e:
+        return {"success": False, "error": "Email or phone already registered"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 def verify_user(username, password):
     """Verify user credentials."""

@@ -122,33 +122,40 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    margin-bottom: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 10px;
+    margin-bottom: 14px;
 }
 
 .user-email {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 200px;
+    max-width: 220px;
 }
 
 .logout-btn {
-    background: none;
-    border: none;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
     cursor: pointer;
-    font-size: 1.1rem;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 0.2s;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ef4444;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
 }
 
 /* Header */

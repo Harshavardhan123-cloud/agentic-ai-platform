@@ -85,8 +85,41 @@ extractBtn.addEventListener('click', async () => {
 
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-        // Send message to content script
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
+        // Check if on supported site
+        const supportedSites = ['leetcode.com', 'hackerrank.com', 'codeforces.com'];
+        const isSupported = supportedSites.some(site => tab.url && tab.url.includes(site));
+
+        if (!isSupported) {
+            showError('Please navigate to a LeetCode, HackerRank, or CodeForces problem page first.');
+            showLoading(false);
+            return;
+        }
+
+        // Try to inject content script first (in case it wasn't loaded)
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['content.js']
+            });
+        } catch (e) {
+            console.log('Content script may already be injected or page not accessible');
+        }
+
+        // Send message to content script with retry
+        let response;
+        try {
+            response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
+        } catch (msgError) {
+            // Retry after a short delay
+            await new Promise(r => setTimeout(r, 500));
+            try {
+                response = await chrome.tabs.sendMessage(tab.id, { action: 'extractProblem' });
+            } catch (retryError) {
+                showError('Content script not loaded. Please refresh the page and try again.');
+                showLoading(false);
+                return;
+            }
+        }
 
         if (response && response.success) {
             currentProblem = response.problem;

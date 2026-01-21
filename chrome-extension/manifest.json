@@ -5,7 +5,8 @@
     "description": "Auto-generate code solutions for LeetCode, HackerRank, and CodeForces problems using AI",
     "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "scripting"
     ],
     "host_permissions": [
         "https://leetcode.com/*",

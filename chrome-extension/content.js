@@ -20,67 +20,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Auto-type code into the code editor (bypasses paste detection)
 async function autotypeCode(code) {
-    // Find the Monaco editor or other code editors
-    const editor = document.querySelector('.monaco-editor textarea') ||
+    // Find the Monaco editor's hidden textarea
+    const editor = document.querySelector('.monaco-editor textarea.inputarea') ||
+        document.querySelector('.monaco-editor textarea') ||
         document.querySelector('.ace_text-input') ||
-        document.querySelector('.CodeMirror textarea') ||
-        document.activeElement;
+        document.querySelector('.CodeMirror textarea');
 
-    if (!editor || editor.tagName === 'BODY') {
-        return { success: false, error: 'Please click inside the code editor first!' };
+    if (!editor) {
+        return { success: false, error: 'Could not find code editor. Please click inside the editor first!' };
     }
 
-    // Focus the editor
-    editor.focus();
+    try {
+        // Focus the editor
+        editor.focus();
 
-    // Clear existing content (Ctrl+A, then start typing)
-    document.execCommand('selectAll', false, null);
+        // Wait a bit for focus
+        await new Promise(r => setTimeout(r, 100));
 
-    // Type code character by character (fast but not instant to appear natural)
-    const typeDelay = 1; // 1ms per character for fast typing
+        // Select all existing content
+        editor.select && editor.select();
+        document.execCommand('selectAll', false, null);
 
-    for (let i = 0; i < code.length; i++) {
-        const char = code[i];
+        // Delete selected content
+        document.execCommand('delete', false, null);
 
-        // Create and dispatch keyboard events
-        const keydownEvent = new KeyboardEvent('keydown', {
-            key: char,
-            code: `Key${char.toUpperCase()}`,
-            charCode: char.charCodeAt(0),
-            keyCode: char.charCodeAt(0),
-            which: char.charCodeAt(0),
-            bubbles: true
-        });
+        // Wait a bit
+        await new Promise(r => setTimeout(r, 50));
 
-        const keypressEvent = new KeyboardEvent('keypress', {
-            key: char,
-            charCode: char.charCodeAt(0),
-            keyCode: char.charCodeAt(0),
-            which: char.charCodeAt(0),
-            bubbles: true
-        });
+        // Insert new text in chunks (not character by character) 
+        // This is faster and avoids infinite loops
+        const chunkSize = 100;
+        for (let i = 0; i < code.length; i += chunkSize) {
+            const chunk = code.substring(i, Math.min(i + chunkSize, code.length));
+            document.execCommand('insertText', false, chunk);
 
-        const inputEvent = new InputEvent('input', {
-            inputType: 'insertText',
-            data: char,
-            bubbles: true
-        });
-
-        editor.dispatchEvent(keydownEvent);
-        editor.dispatchEvent(keypressEvent);
-
-        // Use execCommand for actual text insertion (works with Monaco)
-        document.execCommand('insertText', false, char);
-
-        editor.dispatchEvent(inputEvent);
-
-        // Small delay every 50 characters to not freeze the browser
-        if (i % 50 === 0) {
-            await new Promise(r => setTimeout(r, typeDelay));
+            // Small delay between chunks to not freeze
+            if (i + chunkSize < code.length) {
+                await new Promise(r => setTimeout(r, 5));
+            }
         }
-    }
 
-    return { success: true };
+        return { success: true };
+    } catch (err) {
+        console.error('Auto-type error:', err);
+        return { success: false, error: 'Failed to type code: ' + err.message };
+    }
 }
 
 // Extract problem based on current site

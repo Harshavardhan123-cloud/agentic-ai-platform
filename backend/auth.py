@@ -102,10 +102,21 @@ def login():
         set_refresh_cookies(response, refresh_token)
         
         return response
-        
-    if not verify_user(username, password):
+    
+    # Verify user credentials
+    verify_result = verify_user(username, password)
+    
+    if not verify_result.get("valid"):
         print("❌ Verify User Failed")
         return jsonify({"msg": "Login Failed (Invalid Credentials)"}), 401
+    
+    if verify_result.get("blocked"):
+        print("🚫 User is blocked")
+        return jsonify({"msg": "Your account has been blocked. Contact admin."}), 403
+    
+    # Track session
+    from database import add_session
+    add_session(None, username)  # user_id can be None for simplicity
     
     access_token = create_access_token(identity=username)
     refresh_token = create_refresh_token(identity=username)
@@ -139,6 +150,16 @@ def refresh():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     """Logout user by clearing JWT cookies."""
+    # Remove session tracking
+    try:
+        from database import remove_session
+        # Try to get username from token
+        username = request.json.get("username") if request.json else None
+        if username:
+            remove_session(username)
+    except:
+        pass
+    
     response = jsonify({"msg": "Logout successful"})
     unset_jwt_cookies(response)
     print("🔓 User logged out, cookies cleared")
@@ -161,3 +182,74 @@ def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
 
+# ===== Admin Endpoints =====
+
+@auth_bp.route('/admin/stats', methods=['GET'])
+@jwt_required()
+def admin_stats():
+    """Get admin dashboard stats."""
+    current_user = get_jwt_identity()
+    if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
+        return jsonify({"msg": "Admin access required"}), 403
+    
+    from database import get_user_count, get_session_count
+    return jsonify({
+        "total_users": get_user_count(),
+        "active_sessions": get_session_count()
+    })
+
+@auth_bp.route('/admin/users', methods=['GET'])
+@jwt_required()
+def admin_get_users():
+    """Get all registered users (admin only)."""
+    current_user = get_jwt_identity()
+    if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
+        return jsonify({"msg": "Admin access required"}), 403
+    
+    from database import get_all_users
+    return jsonify({"users": get_all_users()})
+
+@auth_bp.route('/admin/sessions', methods=['GET'])
+@jwt_required()
+def admin_get_sessions():
+    """Get all active sessions (admin only)."""
+    current_user = get_jwt_identity()
+    if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
+        return jsonify({"msg": "Admin access required"}), 403
+    
+    from database import get_active_sessions
+    return jsonify({"sessions": get_active_sessions()})
+
+@auth_bp.route('/admin/block', methods=['POST'])
+@jwt_required()
+def admin_block_user():
+    """Block a user (admin only)."""
+    current_user = get_jwt_identity()
+    if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
+        return jsonify({"msg": "Admin access required"}), 403
+    
+    user_id = request.json.get("user_id")
+    if not user_id:
+        return jsonify({"msg": "User ID required"}), 400
+    
+    from database import block_user
+    if block_user(user_id):
+        return jsonify({"msg": "User blocked successfully"})
+    return jsonify({"msg": "Failed to block user"}), 500
+
+@auth_bp.route('/admin/unblock', methods=['POST'])
+@jwt_required()
+def admin_unblock_user():
+    """Unblock a user (admin only)."""
+    current_user = get_jwt_identity()
+    if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
+        return jsonify({"msg": "Admin access required"}), 403
+    
+    user_id = request.json.get("user_id")
+    if not user_id:
+        return jsonify({"msg": "User ID required"}), 400
+    
+    from database import unblock_user
+    if unblock_user(user_id):
+        return jsonify({"msg": "User unblocked successfully"})
+    return jsonify({"msg": "Failed to unblock user"}), 500

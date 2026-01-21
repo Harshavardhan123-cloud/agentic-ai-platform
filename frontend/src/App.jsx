@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Home from './Home'
 import ProblemSolver from './ProblemSolver'
 import Dashboard from './Dashboard'
+import AdminDashboard from './AdminDashboard'
 import Login from './Login'
 import Signup from './Signup'
 import { AuthProvider, useAuth } from './AuthContext'
@@ -57,6 +58,17 @@ const AppContent = () => {
                         Dashboard
                     </button>
 
+                    {/* Admin Dashboard - Only for admin users */}
+                    {user && (user.username === 'admin' || user.role === 'superadmin') && (
+                        <button
+                            className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('admin')}
+                        >
+                            <span className="tab-icon">👤</span>
+                            Admin
+                        </button>
+                    )}
+
                     {/* Auth Status / Action Button */}
                     {user ? (
                         <button
@@ -96,6 +108,7 @@ const AppContent = () => {
                 {/* 3. Protected Routes - Show Login if !user */}
                 {activeTab === 'problem-solver' && (user ? <ProblemSolver /> : <Login onSwitchToSignup={() => setActiveTab('signup')} />)}
                 {activeTab === 'dashboard' && (user ? <Dashboard /> : <Login onSwitchToSignup={() => setActiveTab('signup')} />)}
+                {activeTab === 'admin' && (user && (user.username === 'admin' || user.role === 'superadmin') ? <AdminDashboard /> : <Login onSwitchToSignup={() => setActiveTab('signup')} />)}
             </main>
         </div>
     )

@@ -75,10 +75,14 @@ def login():
     print(f"Login Attempt: '{username}' / '***'")
     
     # SUPERUSER: Check for superuser credentials from environment
+    import hashlib
     superuser_name = os.getenv("SUPERUSER_USERNAME", "superadmin")
     superuser_pass = os.getenv("SUPERUSER_PASSWORD", "SuperSecure@2026")
     
-    if username and username.strip() == superuser_name and password and password.strip() == superuser_pass:
+    # Hash the superuser password to compare with client-sent hash
+    superuser_pass_hash = hashlib.sha256(superuser_pass.encode()).hexdigest()
+    
+    if username and username.strip() == superuser_name and password and password.strip() == superuser_pass_hash:
         print("✅ Superuser Login Successful")
         access_token = create_access_token(identity=superuser_name)
         refresh_token = create_refresh_token(identity=superuser_name)

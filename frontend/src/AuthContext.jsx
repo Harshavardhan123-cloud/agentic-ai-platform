@@ -11,19 +11,27 @@ export const AuthProvider = ({ children }) => {
     // API URL - Uses same env variable as ProblemSolver
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+    // Hash password using SHA-256 (client-side)
+    const hashPassword = async (password) => {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    };
+
     // Check session on mount (using cookies)
     useEffect(() => {
         const checkSession = async () => {
             try {
-                // First check localStorage for backward compatibility
                 const storedUser = localStorage.getItem('user');
                 if (storedUser) {
                     setUser(JSON.parse(storedUser));
                 }
 
-                // Also try to get user from session cookie
                 const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-                    credentials: 'include',  // Include cookies
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' }
                 });
 
@@ -44,17 +52,19 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
+            // Hash password before sending (hides plain text in network payload)
+            const hashedPassword = await hashPassword(password);
+
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
-                credentials: 'include',  // Include cookies in request
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username, password: hashedPassword })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // Store in localStorage for backward compatibility
                 if (data.access_token) {
                     localStorage.setItem('access_token', data.access_token);
                 }
@@ -75,11 +85,17 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (userData) => {
         try {
+            // Hash password before sending
+            const hashedUserData = {
+                ...userData,
+                password: await hashPassword(userData.password)
+            };
+
             const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
+                body: JSON.stringify(hashedUserData)
             });
 
             const data = await response.json();
@@ -97,7 +113,6 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            // Call backend logout to clear cookies
             await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 credentials: 'include'
@@ -106,14 +121,12 @@ export const AuthProvider = ({ children }) => {
             console.log("Logout request failed:", err);
         }
 
-        // Clear local storage
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         setUser(null);
     };
 
-    // Refresh token when needed
     const refreshToken = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
@@ -135,13 +148,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Helper to get auth header (for backward compatibility with header-based auth)
     const getAuthHeader = () => {
         const token = localStorage.getItem('access_token');
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     };
 
-    // Fetch with credentials helper
     const authFetch = async (url, options = {}) => {
         const response = await fetch(url, {
             ...options,
@@ -153,11 +164,9 @@ export const AuthProvider = ({ children }) => {
             }
         });
 
-        // If unauthorized, try to refresh token
         if (response.status === 401) {
             const refreshed = await refreshToken();
             if (refreshed) {
-                // Retry request with new token
                 return fetch(url, {
                     ...options,
                     credentials: 'include',
@@ -168,7 +177,6 @@ export const AuthProvider = ({ children }) => {
                     }
                 });
             } else {
-                // Refresh failed, logout
                 await logout();
             }
         }
@@ -193,4 +201,3 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
-

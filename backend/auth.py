@@ -47,6 +47,8 @@ def register():
     name = data.get("name", None)
     phone = data.get("phone", None)
     country = data.get("country", None)
+    subscription_plan = data.get("subscription_plan", "free")
+    payment_details = data.get("paymentDetails", None)
     
     missing = []
     if not email: missing.append("email")
@@ -55,10 +57,23 @@ def register():
     if not phone: missing.append("phone")
     if not country: missing.append("country")
     
+    # Validation for Pro Plan
+    payment_status = "none"
+    if subscription_plan == "pro":
+        if not payment_details:
+            return jsonify({"msg": "Payment details required for Pro plan"}), 400
+        
+        # Simulate payment processing
+        if not payment_details.get('cardNumber') or len(payment_details.get('cardNumber')) < 13:
+             return jsonify({"msg": "Invalid card number"}), 400
+             
+        # In a real app, we would process payment here via Stripe/PayPal
+        payment_status = "active"
+    
     if missing:
         return jsonify({"msg": f"Missing required fields: {', '.join(missing)}"}), 400
         
-    result = add_user(email, password, name, phone, country)
+    result = add_user(email, password, name, phone, country, subscription_plan, payment_status)
     if result.get("success"):
         return jsonify({"msg": "User created successfully"}), 201
     else:

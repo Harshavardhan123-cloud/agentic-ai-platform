@@ -25,6 +25,8 @@ def init_db():
                     name TEXT,
                     phone TEXT,
                     country TEXT,
+                    subscription_plan TEXT DEFAULT 'free',
+                    payment_status TEXT DEFAULT 'none',
                     is_blocked INTEGER DEFAULT 0,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
@@ -41,21 +43,27 @@ def init_db():
                 )
             ''')
             
-            # Add is_blocked column if not exists (migration)
+            # Migrations for existing tables
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN subscription_plan TEXT DEFAULT 'free'")
+            except: pass
+            
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN payment_status TEXT DEFAULT 'none'")
+            except: pass
+            
             try:
                 conn.execute("ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0")
-            except:
-                pass  # Column already exists
+            except: pass
             
             try:
                 conn.execute("ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP")
-            except:
-                pass
+            except: pass
             
             # Create or Update default admin for Demo
             try:
                 cur = conn.cursor()
-                cur.execute("INSERT OR REPLACE INTO users (id, username, password, name, phone, country, is_blocked) VALUES ((SELECT id FROM users WHERE username = 'admin'), 'admin', 'admin', 'Admin User', '0000000000', 'US', 0)")
+                cur.execute("INSERT OR REPLACE INTO users (id, username, password, name, phone, country, is_blocked, subscription_plan) VALUES ((SELECT id FROM users WHERE username = 'admin'), 'admin', 'admin', 'Admin User', '0000000000', 'US', 0, 'pro')")
                 print("✅ Default admin user (admin/admin) ensured.")
             except Exception as e:
                 print(f"Admin seed warning: {e}")
@@ -64,7 +72,7 @@ def init_db():
     except Exception as e:
         print(f"DB Init Error: {e}")
 
-def add_user(username, password, name, phone, country):
+def add_user(username, password, name, phone, country, subscription_plan='free', payment_status='none'):
     """Add a new user with duplicate checking."""
     try:
         conn = get_db_connection()
@@ -83,8 +91,8 @@ def add_user(username, password, name, phone, country):
         
         # Insert new user
         with conn:
-            conn.execute("INSERT INTO users (username, password, name, phone, country, is_blocked) VALUES (?, ?, ?, ?, ?, 0)", 
-                        (username, password, name, phone, country))
+            conn.execute("INSERT INTO users (username, password, name, phone, country, subscription_plan, payment_status, is_blocked) VALUES (?, ?, ?, ?, ?, ?, ?, 0)", 
+                        (username, password, name, phone, country, subscription_plan, payment_status))
         conn.close()
         return {"success": True}
     except sqlite3.IntegrityError as e:

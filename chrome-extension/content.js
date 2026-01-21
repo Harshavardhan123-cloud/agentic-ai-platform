@@ -120,11 +120,9 @@ async function autotypeCode(code) {
             await new Promise(r => setTimeout(r, 50));
 
             // Insert new code
-            // Try execCommand insertText (Modern browsers supported)
-            const insertSuccess = document.execCommand('insertText', false, code);
-
-            if (!insertSuccess) {
-                // Try simulating Paste Event
+            // Method 1: Try simulating Paste Event (BEST for preventing auto-close artifacts)
+            let posted = false;
+            try {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.setData('text/plain', code);
                 const pasteEvent = new ClipboardEvent('paste', {
@@ -134,6 +132,12 @@ async function autotypeCode(code) {
                     view: window
                 });
                 editor.dispatchEvent(pasteEvent);
+                posted = true;
+            } catch (e) { console.error('Paste dispatch failed', e); }
+
+            // Method 2: Fallback to insertText
+            if (!posted) {
+                document.execCommand('insertText', false, code);
             }
 
             showToast('✅ Code typed (Fallback)');

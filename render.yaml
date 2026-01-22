@@ -1,0 +1,28 @@
+# Render Blueprint for HRC AI Backend
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: hrc-ai-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gevent -w 1 backend.agentic_api_server:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: SUPERUSER_USERNAME
+        value: superadmin
+      - key: SUPERUSER_PASSWORD
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+    autoDeploy: true
+    healthCheckPath: /api/health

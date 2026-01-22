@@ -204,7 +204,7 @@ def create_guest_order():
         
     except Exception as e:
         print(f"Guest order exception: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"V2: {str(e)}"}), 500
 
 
 @payment_bp.route('/register-with-payment', methods=['POST'])

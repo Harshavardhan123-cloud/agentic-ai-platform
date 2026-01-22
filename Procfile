@@ -1,1 +1,1 @@
-web: gunicorn --worker-class gevent -w 1 backend.agentic_api_server:app
+web: gunicorn --worker-class gthread --threads 4 -w 1 backend.agentic_api_server:app

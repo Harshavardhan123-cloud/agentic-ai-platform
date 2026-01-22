@@ -95,6 +95,24 @@
                 Generate Solution
             </button>
 
+            <!-- Settings Section -->
+            <section class="settings-section" style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="font-size: 14px; font-weight: 500; color: #e2e8f0;">Typing Speed</label>
+                    <span id="speed-label"
+                        style="font-size: 12px; color: #8B5CF6; background: rgba(139, 92, 246, 0.1); padding: 2px 8px; border-radius: 4px;">Normal</span>
+                </div>
+                <input type="range" id="speed-slider" min="1" max="4" value="2"
+                    style="width: 100%; accent-color: #8B5CF6; cursor: pointer;">
+                <div
+                    style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                    <span>Slow</span>
+                    <span>Normal</span>
+                    <span>Fast</span>
+                    <span>Instant</span>
+                </div>
+            </section>
+
             <!-- Solution Section -->
             <section class="solution-section" id="solution-section" style="display: none;">
                 <div class="section-header">

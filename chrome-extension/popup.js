@@ -298,12 +298,38 @@ copyBtn.addEventListener('click', async () => {
     }
 });
 
+// Speed Slider Logic
+const speedSlider = document.getElementById('speed-slider');
+const speedLabel = document.getElementById('speed-label');
+const speedMap = { 1: 'slow', 2: 'normal', 3: 'fast', 4: 'instant' };
+const labelMap = { 1: 'Slow (Human)', 2: 'Normal (Human)', 3: 'Fast (Human)', 4: 'Instant (Injected)' };
+
+// Load saved speed
+chrome.storage.local.get(['typingSpeed'], (result) => {
+    if (result.typingSpeed) {
+        // Find key for value
+        const val = Object.keys(speedMap).find(key => speedMap[key] === result.typingSpeed);
+        if (val) {
+            speedSlider.value = val;
+            speedLabel.textContent = labelMap[val];
+        }
+    }
+});
+
+speedSlider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    speedLabel.textContent = labelMap[val];
+    chrome.storage.local.set({ typingSpeed: speedMap[val] });
+});
+
 // Auto-Type solution into editor (bypasses paste detection)
 const autotypeBtn = document.getElementById('autotype-btn');
 if (autotypeBtn) {
     autotypeBtn.addEventListener('click', async () => {
         const code = solutionCode.textContent;
         if (!code) return;
+
+        const speed = speedMap[speedSlider.value] || 'normal';
 
         autotypeBtn.textContent = '⏳';
         autotypeBtn.disabled = true;
@@ -314,7 +340,8 @@ if (autotypeBtn) {
             // Send code to content script for typing
             chrome.tabs.sendMessage(tab.id, {
                 action: 'autotype',
-                code: code
+                code: code,
+                speed: speed
             }, (response) => {
                 if (chrome.runtime.lastError) {
                     console.log('Message error:', chrome.runtime.lastError);

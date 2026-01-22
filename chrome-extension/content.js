@@ -8,7 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(problem);
     } else if (request.action === 'autotype') {
         // Auto-type code into the editor
-        autotypeCode(request.code).then(result => {
+        autotypeCode(request.code, request.speed).then(result => {
             sendResponse(result);
         }).catch(err => {
             sendResponse({ success: false, error: err.message });
@@ -63,7 +63,7 @@ function showToast(message, duration = 3000) {
 let isAutoTyping = false;
 
 // Auto-type code into the code editor (bypasses paste detection)
-async function autotypeCode(code) {
+async function autotypeCode(code, speed = 'instant') {
     if (isAutoTyping) return { success: false, error: 'Already typing...' };
     isAutoTyping = true;
 
@@ -78,17 +78,21 @@ async function autotypeCode(code) {
 
         showToast('⚡ HRC AI: Analyzing editor...');
 
-        // 2. Try Script Injection for Monaco (Best for LeetCode)
-        // We will try this first and wait for it.
-        const injectedSuccess = await injectMonacoScript(code);
-        if (injectedSuccess) {
-            showToast('✅ Code replaced (Monaco API)');
-            isAutoTyping = false;
-            return { success: true, method: 'monaco-script' };
+        // 2. Try Script Injection for Monaco (Best for LeetCode) - ONLY if speed is 'instant'
+        // If human-like typing is requested, we skip injection and use DOM events
+        if (speed === 'instant') {
+            const injectedSuccess = await injectMonacoScript(code);
+            if (injectedSuccess) {
+                showToast('✅ Code replaced (Monaco API)');
+                isAutoTyping = false;
+                return { success: true, method: 'monaco-script' };
+            }
         }
 
-        // If we reached here, Monaco Injection failed.
-        showToast('⚠️ Monaco API failed. Using Fallback input...');
+        // If we reached here, Monaco Injection failed or we want human typing.
+        if (speed !== 'instant') {
+            showToast(`⌨️ Typing at ${speed} speed...`);
+        }
 
         // 3. Fallback: Find Editor and Dispatch Events
         const editor = findEditorInput();
@@ -120,30 +124,37 @@ async function autotypeCode(code) {
             await new Promise(r => setTimeout(r, 50));
 
             // Insert new code
-            // Method 1: Try simulating Paste Event (BEST for preventing auto-close artifacts)
-            let posted = false;
-            try {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.setData('text/plain', code);
-                const pasteEvent = new ClipboardEvent('paste', {
-                    bubbles: true,
-                    cancelable: true,
-                    clipboardData: dataTransfer,
-                    view: window
-                });
-                editor.dispatchEvent(pasteEvent);
-                posted = true;
-            } catch (e) { console.error('Paste dispatch failed', e); }
+            if (speed === 'instant') {
+                // Method 1: Try simulating Paste Event (BEST for preventing auto-close artifacts)
+                let posted = false;
+                try {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.setData('text/plain', code);
+                    const pasteEvent = new ClipboardEvent('paste', {
+                        bubbles: true,
+                        cancelable: true,
+                        clipboardData: dataTransfer,
+                        view: window
+                    });
+                    editor.dispatchEvent(pasteEvent);
+                    posted = true;
+                } catch (e) { console.error('Paste dispatch failed', e); }
 
-            // Method 2: Fallback to insertText
-            if (!posted) {
-                document.execCommand('insertText', false, code);
+                // Method 2: Fallback to insertText
+                if (!posted) {
+                    document.execCommand('insertText', false, code);
+                }
+                showToast('✅ Code typed (Instant)');
+            } else {
+                // Human-like typing simulation
+                await simulateTyping(editor, code, speed);
+                showToast('✅ Typing complete');
             }
 
-            showToast('✅ Code typed (Fallback)');
             isAutoTyping = false;
-            return { success: true, method: 'dom-fallback' };
+            return { success: true, method: speed === 'instant' ? 'dom-fallback' : 'human-typing' };
         }
+
 
         // 4. Final Fallback: Manual Paste Guide
         showToast('📋 Code copied! Click editor and press Ctrl+V.', 4000);
@@ -472,4 +483,69 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectFloatingButton);
 } else {
     injectFloatingButton();
+}
+
+// Simulate human-like typing
+async function simulateTyping(element, text, speed) {
+    const delayMap = {
+        'fast': { min: 5, max: 15 },
+        'normal': { min: 30, max: 70 },
+        'slow': { min: 80, max: 150 }
+    };
+
+    // Default to normal if invalid speed
+    const delays = delayMap[speed] || delayMap['normal'];
+
+    for (const char of text) {
+        // Stop if typing was cancelled (could add a global flag later)
+
+        // Dispatch events for this character
+        const keyboardOptions = {
+            key: char,
+            code: `Key${char.toUpperCase()}`,
+            bubbles: true,
+            cancelable: true
+        };
+
+        element.dispatchEvent(new KeyboardEvent('keydown', keyboardOptions));
+        element.dispatchEvent(new KeyboardEvent('keypress', keyboardOptions));
+
+        // Update value
+        // Note: For some editors like Monaco/Ace, directly setting value might not work well with undo/redo stack
+        // but input/textInput events usually trigger the internal logic.
+
+        const inputEvent = new InputEvent('input', {
+            data: char,
+            inputType: 'insertText',
+            bubbles: true,
+            cancelable: true
+        });
+        element.dispatchEvent(inputEvent);
+
+        // If contenteditable or standard input, try textInput event (legacy but useful)
+        const textInputEvent = new InputEvent('textInput', {
+            data: char,
+            bubbles: true
+        });
+        element.dispatchEvent(textInputEvent);
+
+        // Fallback: actually insert text if event didn't handle it
+        // This is tricky with specialized editors, so we rely mainly on events or execCommand
+        // document.execCommand('insertText', false, char); 
+        // ^ execCommand is deprecated but often necessary. Let's try it for every char? 
+        // No, that might be too slow or buggy. Let's try inserting via execCommand which handles events mostly.
+
+        document.execCommand('insertText', false, char);
+
+        element.dispatchEvent(new KeyboardEvent('keyup', keyboardOptions));
+
+        // Random delay
+        const delay = Math.floor(Math.random() * (delays.max - delays.min + 1)) + delays.min;
+        await new Promise(r => setTimeout(r, delay));
+
+        // Occasionally pause (simulating thinking/reading)
+        if (Math.random() < 0.05) { // 5% chance
+            await new Promise(r => setTimeout(r, delay * 3));
+        }
+    }
 }

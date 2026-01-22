@@ -3,7 +3,7 @@ import './Home.css';
 
 const Home = ({ onStart }) => {
     const [serverStatus, setServerStatus] = useState('checking');
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agentic-ai-platform-1-e7zu.onrender.com';
 
     useEffect(() => {
         const checkHealth = async () => {

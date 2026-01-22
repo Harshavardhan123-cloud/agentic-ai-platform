@@ -44,7 +44,12 @@ CORS(app, resources={
 # Initialize JWT
 jwt = JWTManager(app)
 setup_auth(app, jwt)
-setup_payment(app)  # Register payment endpoints
+
+# Setup payment only if module was imported successfully
+try:
+    setup_payment(app)  # Register payment endpoints
+except NameError:
+    print("⚠️  Payment module not available, skipping payment setup")
 
 # Initialize platform
 dashboard = None

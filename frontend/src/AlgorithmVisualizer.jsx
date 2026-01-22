@@ -20,7 +20,7 @@ function AlgorithmVisualizer({ code, language, onClose }) {
         setLoading(true)
         setError(null)
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agentic-ai-platform-1-e7zu.onrender.com';
             const response = await fetch(`${API_BASE_URL}/api/visualize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

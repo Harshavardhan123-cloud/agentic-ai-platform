@@ -79,8 +79,8 @@ const ProblemSolver = () => {
         }
     };
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5000';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agentic-ai-platform-1-e7zu.onrender.com';
+    const WS_URL = import.meta.env.VITE_WS_URL || 'https://agentic-ai-platform-1-e7zu.onrender.com';
 
     const LANGUAGES = [
         'python', 'javascript', 'typescript', 'java', 'c++', 'c', 'c#',

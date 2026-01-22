@@ -9,29 +9,54 @@ import os
 import hmac
 import hashlib
 import time
+import requests
+import base64
 
 # Create Blueprint
 payment_bp = Blueprint('payment', __name__)
 
-# Lazily import razorpay to avoid import-time issues
-_razorpay_client = None
-
-# Razorpay client (initialized with env variables)
-def get_razorpay_client():
-    global _razorpay_client
+# Helper to make Razorpay requests
+def create_razorpay_order(amount, currency, receipt, notes):
+    """Create order via direct HTTP request to avoid SDK recursion issues."""
     key_id = os.getenv("RAZORPAY_KEY_ID", "")
     key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
+    
     if not key_id or not key_secret:
-        return None
-    # Lazily create and cache the client
-    if _razorpay_client is None:
-        try:
-            import razorpay
-            _razorpay_client = razorpay.Client(auth=(key_id, key_secret))
-        except Exception as e:
-            print(f"Failed to create Razorpay client: {e}")
-            return None
-    return _razorpay_client
+        return None, "Payment gateway configuration missing"
+
+    url = "https://api.razorpay.com/v1/orders"
+    auth = (key_id, key_secret)
+    data = {
+        "amount": amount,
+        "currency": currency,
+        "receipt": receipt,
+        "notes": notes
+    }
+    
+    try:
+        response = requests.post(url, json=data, auth=auth, timeout=10)
+        if response.status_code == 200:
+            return response.json(), None
+        else:
+            return None, f"Razorpay Error: {response.text}"
+    except Exception as e:
+        return None, f"Connection Error: {str(e)}"
+
+# Helper to verify signature
+def verify_signature(order_id, payment_id, signature):
+    """Verify Razorpay signature locally."""
+    key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
+    if not key_secret:
+        return False
+        
+    message = f"{order_id}|{payment_id}"
+    generated_signature = hmac.new(
+        key_secret.encode(),
+        message.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return generated_signature == signature
 
 # Subscription Plans with pricing (in paise - 1 INR = 100 paise)
 PLANS = {
@@ -50,10 +75,6 @@ def get_plans():
 def create_order():
     """Create a Razorpay order for subscription."""
     try:
-        client = get_razorpay_client()
-        if not client:
-            return jsonify({"error": "Payment gateway not configured"}), 503
-        
         data = request.json
         plan_id = data.get("plan", "pro")
         
@@ -63,22 +84,23 @@ def create_order():
         plan = PLANS[plan_id]
         
         # Create Razorpay order
-        order_data = {
-            "amount": plan["price"],  # Amount in paise
-            "currency": "INR",
-            "receipt": f"order_{get_jwt_identity()}_{plan_id}",
-            "notes": {
+        order_data, error = create_razorpay_order(
+            amount=plan["price"],
+            currency="INR",
+            receipt=f"order_{get_jwt_identity()}_{plan_id}",
+            notes={
                 "plan": plan_id,
                 "username": get_jwt_identity()
             }
-        }
+        )
         
-        order = client.order.create(data=order_data)
-        
+        if error:
+            return jsonify({"error": error}), 503 if "configuration missing" in error else 500
+            
         return jsonify({
-            "order_id": order["id"],
-            "amount": order["amount"],
-            "currency": order["currency"],
+            "order_id": order_data["id"],
+            "amount": order_data["amount"],
+            "currency": order_data["currency"],
             "key_id": os.getenv("RAZORPAY_KEY_ID"),
             "plan": plan
         })
@@ -91,10 +113,6 @@ def create_order():
 def verify_payment():
     """Verify Razorpay payment signature and activate subscription."""
     try:
-        client = get_razorpay_client()
-        if not client:
-            return jsonify({"error": "Payment gateway not configured"}), 503
-        
         data = request.json
         razorpay_order_id = data.get("razorpay_order_id")
         razorpay_payment_id = data.get("razorpay_payment_id")
@@ -105,15 +123,7 @@ def verify_payment():
             return jsonify({"error": "Missing payment details"}), 400
         
         # Verify signature
-        key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
-        message = f"{razorpay_order_id}|{razorpay_payment_id}"
-        generated_signature = hmac.new(
-            key_secret.encode(),
-            message.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        
-        if generated_signature != razorpay_signature:
+        if not verify_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature):
             return jsonify({"error": "Invalid payment signature"}), 400
         
         # Update user subscription in database
@@ -159,10 +169,6 @@ def get_subscription_status():
 def create_guest_order():
     """Create a Razorpay order for guest (pre-registration) checkout."""
     try:
-        client = get_razorpay_client()
-        if not client:
-            return jsonify({"error": "Payment gateway not configured"}), 503
-        
         data = request.json
         plan_id = data.get("plan", "pro")
         email = data.get("email", "guest")
@@ -172,29 +178,32 @@ def create_guest_order():
         
         plan = PLANS[plan_id]
         
-        # Create Razorpay order for guest
-        order_data = {
-            "amount": plan["price"],  # Amount in paise
-            "currency": "INR",
-            "receipt": f"guest_{email}_{plan_id}_{int(time.time())}",
-            "notes": {
+        # Create Razorpay order via direct HTTP
+        order_data, error = create_razorpay_order(
+            amount=plan["price"],
+            currency="INR",
+            receipt=f"guest_{email}_{plan_id}_{int(time.time())}",
+            notes={
                 "plan": plan_id,
                 "email": email,
                 "type": "registration"
             }
-        }
+        )
         
-        order = client.order.create(data=order_data)
+        if error:
+            print(f"Guest order creation error: {error}")
+            return jsonify({"error": error}), 503 if "configuration missing" in error else 500
         
         return jsonify({
-            "order_id": order["id"],
-            "amount": order["amount"],
-            "currency": order["currency"],
+            "order_id": order_data["id"],
+            "amount": order_data["amount"],
+            "currency": order_data["currency"],
             "key_id": os.getenv("RAZORPAY_KEY_ID"),
             "plan": plan
         })
         
     except Exception as e:
+        print(f"Guest order exception: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -226,15 +235,7 @@ def register_with_payment():
             return jsonify({"error": "Missing user registration details"}), 400
         
         # Verify Razorpay signature
-        key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
-        message = f"{razorpay_order_id}|{razorpay_payment_id}"
-        generated_signature = hmac.new(
-            key_secret.encode(),
-            message.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        
-        if generated_signature != razorpay_signature:
+        if not verify_signature(razorpay_order_id, razorpay_payment_id, razorpay_signature):
             return jsonify({"error": "Invalid payment signature"}), 400
         
         # Payment verified - now register the user

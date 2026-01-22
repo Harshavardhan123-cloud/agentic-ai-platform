@@ -25,6 +25,7 @@ try:
     from backend.ag2_dashboard import get_dashboard
     from backend.visualization_generator import VisualizationGenerator
     from backend.auth import setup_auth  # Import Auth
+    from backend.payment import setup_payment  # Import Payment
     PLATFORM_AVAILABLE = True
 except ImportError as e:
     PLATFORM_AVAILABLE = False
@@ -43,6 +44,7 @@ CORS(app, resources={
 # Initialize JWT
 jwt = JWTManager(app)
 setup_auth(app, jwt)
+setup_payment(app)  # Register payment endpoints
 
 # Initialize platform
 dashboard = None

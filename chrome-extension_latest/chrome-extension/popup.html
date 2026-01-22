@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRC AI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🧠</span>
+                <span class="logo-text">HRC AI</span>
+            </div>
+            <div class="status" id="status">
+                <span class="status-dot"></span>
+                <span class="status-text">Not logged in</span>
+            </div>
+        </header>
+
+        <!-- Login Section (shown when not authenticated) -->
+        <section class="login-section" id="login-section">
+            <div class="login-header">
+                <h2>Welcome</h2>
+                <p>Sign in to generate AI solutions</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    <span class="btn-icon">🔐</span>
+                    Sign In
+                </button>
+            </form>
+
+            <div class="login-error" id="login-error" style="display: none;">
+                <span>❌</span>
+                <span id="login-error-text"></span>
+            </div>
+
+            <div class="login-footer">
+                <a href="https://tiny-bonbon-51a47d.netlify.app" target="_blank">Create Account</a>
+            </div>
+        </section>
+
+        <!-- Main Content (shown when authenticated) -->
+        <main id="main-content" style="display: none;">
+            <!-- User Info Bar -->
+            <div class="user-bar" id="user-bar">
+                <span class="user-email" id="user-email"></span>
+                <button class="logout-btn" id="logout-btn" title="Logout">Logout</button>
+            </div>
+
+            <!-- Problem Section -->
+            <section class="problem-section">
+                <div class="section-header">
+                    <span class="section-icon">📝</span>
+                    <span class="section-title">Problem</span>
+                </div>
+                <div class="problem-content" id="problem-content">
+                    <p class="placeholder">Click "Extract Problem" or visit a LeetCode problem page</p>
+                </div>
+                <button class="btn btn-secondary" id="extract-btn">
+                    <span class="btn-icon">🔍</span>
+                    Extract Problem
+                </button>
+            </section>
+
+            <!-- Language Selector -->
+            <section class="language-section">
+                <label for="language-select">Language</label>
+                <select id="language-select">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                    <option value="typescript">TypeScript</option>
+                </select>
+            </section>
+
+            <!-- Generate Button -->
+            <button class="btn btn-primary" id="generate-btn" disabled>
+                <span class="btn-icon">⚡</span>
+                Generate Solution
+            </button>
+
+            <!-- Solution Section -->
+            <section class="solution-section" id="solution-section" style="display: none;">
+                <div class="section-header">
+                    <span class="section-icon">💡</span>
+                    <span class="section-title">Solution</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="copy-btn" id="autotype-btn"
+                            title="Auto-type into editor (bypasses paste detection)">
+                            ⌨️
+                        </button>
+                        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+                            📋
+                        </button>
+                    </div>
+                </div>
+                <pre class="code-block"><code id="solution-code"></code></pre>
+
+                <!-- Complexity -->
+                <div class="complexity-info" id="complexity-info"></div>
+            </section>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating solution...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error" id="error" style="display: none;">
+                <span class="error-icon">❌</span>
+                <span class="error-text" id="error-text"></span>
+            </div>
+        </main>
+
+        <footer>
+            <a href="https://tiny-bonbon-51a47d.netlify.app" target="_blank">Open Full App</a>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

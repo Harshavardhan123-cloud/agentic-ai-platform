@@ -86,31 +86,31 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
             return;
         }
 
-        // Payment Validation for Pro Plan
-        if (formData.subscription_plan === 'pro') {
-            if (!formData.paymentDetails.cardNumber || formData.paymentDetails.cardNumber.length < 13) {
-                setError("Invalid card number");
-                return;
-            }
-            if (!formData.paymentDetails.expiry || !formData.paymentDetails.cvv) {
-                setError("Please complete payment details");
-                return;
-            }
-        }
+        // No manual card validation needed - Razorpay handles payment after signup
 
-        const { confirmPassword, ...submitData } = formData;
-        // If free plan, don't send payment details to keep it clean
-        if (submitData.subscription_plan === 'free') {
-            delete submitData.paymentDetails;
-        }
+        const { confirmPassword, paymentDetails, ...submitData } = formData;
 
         const result = await register(submitData);
 
         if (result.success) {
-            setSuccess("Account created successfully! Redirecting...");
-            setTimeout(() => {
-                onSwitchToLogin();
-            }, 1500);
+            // If paid plan, redirect to Razorpay checkout after signup
+            if (formData.subscription_plan !== 'free') {
+                setSuccess("Account created! Redirecting to payment...");
+                // Store plan in localStorage for payment page to use
+                localStorage.setItem('pendingPayment', JSON.stringify({
+                    plan: formData.subscription_plan,
+                    email: formData.email
+                }));
+                setTimeout(() => {
+                    // Redirect to payment page or trigger Razorpay
+                    onSwitchToLogin();
+                }, 1500);
+            } else {
+                setSuccess("Account created successfully! Redirecting...");
+                setTimeout(() => {
+                    onSwitchToLogin();
+                }, 1500);
+            }
         } else {
             setError(result.error);
         }
@@ -172,11 +172,11 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                     </div>
 
                     {/* Plan Selection */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                         <div
                             onClick={() => setFormData({ ...formData, subscription_plan: 'free' })}
                             style={{
-                                padding: '16px',
+                                padding: '16px 12px',
                                 borderRadius: '12px',
                                 border: formData.subscription_plan === 'free' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                                 background: formData.subscription_plan === 'free' ? 'rgba(139, 92, 246, 0.1)' : 'var(--bg-secondary)',
@@ -185,13 +185,13 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Free</div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Standard Access</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Free</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>₹0/mo</div>
                         </div>
                         <div
                             onClick={() => setFormData({ ...formData, subscription_plan: 'pro' })}
                             style={{
-                                padding: '16px',
+                                padding: '16px 12px',
                                 borderRadius: '12px',
                                 border: formData.subscription_plan === 'pro' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
                                 background: formData.subscription_plan === 'pro' ? 'rgba(139, 92, 246, 0.1)' : 'var(--bg-secondary)',
@@ -200,46 +200,36 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Pro 👑</div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Full Access</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Pro 👑</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>₹499/mo</div>
+                        </div>
+                        <div
+                            onClick={() => setFormData({ ...formData, subscription_plan: 'enterprise' })}
+                            style={{
+                                padding: '16px 12px',
+                                borderRadius: '12px',
+                                border: formData.subscription_plan === 'enterprise' ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                                background: formData.subscription_plan === 'enterprise' ? 'rgba(139, 92, 246, 0.1)' : 'var(--bg-secondary)',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Enterprise 🚀</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>₹1999/mo</div>
                         </div>
                     </div>
 
-                    {/* Payment Form (Only for Pro) */}
-                    {formData.subscription_plan === 'pro' && (
-                        <div style={{ padding: '20px', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-                            <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', color: 'var(--text-primary)' }}>Secure Payment</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <input
-                                    type="text"
-                                    name="payment.cardNumber"
-                                    value={formData.paymentDetails.cardNumber}
-                                    onChange={handleChange}
-                                    placeholder="Card Number (0000 0000 0000 0000)"
-                                    className="form-input"
-                                    maxLength="19"
-                                />
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <input
-                                        type="text"
-                                        name="payment.expiry"
-                                        value={formData.paymentDetails.expiry}
-                                        onChange={handleChange}
-                                        placeholder="MM/YY"
-                                        className="form-input"
-                                        maxLength="5"
-                                    />
-                                    <input
-                                        type="text"
-                                        name="payment.cvv"
-                                        value={formData.paymentDetails.cvv}
-                                        onChange={handleChange}
-                                        placeholder="CVV"
-                                        className="form-input"
-                                        maxLength="3"
-                                    />
-                                </div>
+                    {/* Payment Info (Only for Paid Plans) */}
+                    {formData.subscription_plan !== 'free' && (
+                        <div style={{ padding: '16px', background: 'rgba(139, 92, 246, 0.05)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '1.2rem' }}>💳</span>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Razorpay Checkout</span>
                             </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                Secure payment via UPI, Cards, Netbanking, or Wallets. You'll be redirected to Razorpay after signup.
+                            </p>
                         </div>
                     )}
 

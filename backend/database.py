@@ -1,9 +1,11 @@
 import sqlite3
 import os
 from datetime import datetime
-import tempfile
 
-DB_NAME = os.path.join(tempfile.gettempdir(), "users.db")
+# Use persistent storage in backend/data instead of temp directory
+DB_DIR = os.path.join(os.path.dirname(__file__), 'data')
+os.makedirs(DB_DIR, exist_ok=True)
+DB_NAME = os.path.join(DB_DIR, "users.db")
 
 def get_db_connection():
     """Create a database connection."""
@@ -218,9 +220,83 @@ def get_session_count():
     except:
         return 0
 
+# ===== Payment Functions =====
+
+def add_payment_record(username, order_id, payment_id, amount, plan, status):
+    """Record a payment transaction."""
+    try:
+        conn = get_db_connection()
+        # Create payments table if not exists
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                order_id TEXT,
+                payment_id TEXT,
+                amount INTEGER,
+                plan TEXT,
+                status TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.execute(
+            "INSERT INTO payments (username, order_id, payment_id, amount, plan, status) VALUES (?, ?, ?, ?, ?, ?)",
+            (username, order_id, payment_id, amount, plan, status)
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error adding payment: {e}")
+        return False
+
+def update_user_subscription(username, plan, status):
+    """Update user's subscription plan and status."""
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            "UPDATE users SET subscription_plan = ?, payment_status = ? WHERE username = ?",
+            (plan, status, username)
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error updating subscription: {e}")
+        return False
+
+def get_user_subscription(username):
+    """Get user's current subscription details."""
+    try:
+        conn = get_db_connection()
+        user = conn.execute(
+            "SELECT subscription_plan, payment_status FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+        conn.close()
+        if user:
+            return {"plan": user['subscription_plan'], "status": user['payment_status']}
+        return {"plan": "free", "status": "none"}
+    except Exception as e:
+        print(f"Error getting subscription: {e}")
+        return {"plan": "free", "status": "none"}
+
+def get_payment_history(username):
+    """Get user's payment history."""
+    try:
+        conn = get_db_connection()
+        payments = conn.execute(
+            "SELECT * FROM payments WHERE username = ? ORDER BY created_at DESC",
+            (username,)
+        ).fetchall()
+        conn.close()
+        return [dict(p) for p in payments]
+    except Exception as e:
+        print(f"Error getting payments: {e}")
+        return []
+
 # Initialize on module load
 try:
     init_db()
 except Exception as e:
     print(f"Startup DB Error: {e}")
-

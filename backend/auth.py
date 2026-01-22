@@ -130,7 +130,7 @@ def login():
         return jsonify({"msg": "Your account has been blocked. Contact admin."}), 403
     
     # Track session
-    from database import add_session
+    from backend.database import add_session
     add_session(None, username)  # user_id can be None for simplicity
     
     access_token = create_access_token(identity=username)
@@ -167,7 +167,7 @@ def logout():
     """Logout user by clearing JWT cookies."""
     # Remove session tracking
     try:
-        from database import remove_session
+        from backend.database import remove_session
         # Try to get username from token
         username = request.json.get("username") if request.json else None
         if username:
@@ -207,7 +207,7 @@ def admin_stats():
     if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
         return jsonify({"msg": "Admin access required"}), 403
     
-    from database import get_user_count, get_session_count
+    from backend.database import get_user_count, get_session_count
     return jsonify({
         "total_users": get_user_count(),
         "active_sessions": get_session_count()
@@ -221,7 +221,7 @@ def admin_get_users():
     if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
         return jsonify({"msg": "Admin access required"}), 403
     
-    from database import get_all_users
+    from backend.database import get_all_users
     return jsonify({"users": get_all_users()})
 
 @auth_bp.route('/admin/sessions', methods=['GET'])
@@ -232,7 +232,7 @@ def admin_get_sessions():
     if current_user not in ["admin", os.getenv("SUPERUSER_USERNAME", "superadmin")]:
         return jsonify({"msg": "Admin access required"}), 403
     
-    from database import get_active_sessions
+    from backend.database import get_active_sessions
     return jsonify({"sessions": get_active_sessions()})
 
 @auth_bp.route('/admin/block', methods=['POST'])
@@ -247,7 +247,7 @@ def admin_block_user():
     if not user_id:
         return jsonify({"msg": "User ID required"}), 400
     
-    from database import block_user
+    from backend.database import block_user
     if block_user(user_id):
         return jsonify({"msg": "User blocked successfully"})
     return jsonify({"msg": "Failed to block user"}), 500
@@ -264,7 +264,7 @@ def admin_unblock_user():
     if not user_id:
         return jsonify({"msg": "User ID required"}), 400
     
-    from database import unblock_user
+    from backend.database import unblock_user
     if unblock_user(user_id):
         return jsonify({"msg": "User unblocked successfully"})
     return jsonify({"msg": "Failed to unblock user"}), 500

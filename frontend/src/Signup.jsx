@@ -36,7 +36,7 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
         { id: 'uppercase', label: 'Uppercase letter (A-Z)', test: (p) => /[A-Z]/.test(p) },
         { id: 'lowercase', label: 'Lowercase letter (a-z)', test: (p) => /[a-z]/.test(p) },
         { id: 'number', label: 'Number (0-9)', test: (p) => /[0-9]/.test(p) },
-        { id: 'special', label: 'Special character (!@#$%^&*)', test: (p) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?]/.test(p) }
+        { id: 'special', label: 'Special character (!@#$%^&*)', test: (p) => /[^a-zA-Z0-9]/.test(p) }
     ];
 
     const isPasswordValid = () => passwordRules.every(rule => rule.test(formData.password));
@@ -93,18 +93,93 @@ const Signup = ({ onSwitchToLogin, onSwitchToHome }) => {
         const result = await register(submitData);
 
         if (result.success) {
-            // If paid plan, redirect to Razorpay checkout after signup
+            // If paid plan, trigger Razorpay checkout after signup
             if (formData.subscription_plan !== 'free') {
-                setSuccess("Account created! Redirecting to payment...");
-                // Store plan in localStorage for payment page to use
-                localStorage.setItem('pendingPayment', JSON.stringify({
-                    plan: formData.subscription_plan,
-                    email: formData.email
-                }));
-                setTimeout(() => {
-                    // Redirect to payment page or trigger Razorpay
-                    onSwitchToLogin();
-                }, 1500);
+                setSuccess("Account created! Opening payment...");
+
+                try {
+                    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agentic-ai-platform-1-e7zu.onrender.com';
+
+                    // Get auth token from the registration response or login
+                    const token = result.token || localStorage.getItem('token');
+
+                    // Create Razorpay order
+                    const orderRes = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ plan: formData.subscription_plan })
+                    });
+
+                    const orderData = await orderRes.json();
+
+                    if (orderData.order_id) {
+                        // Load Razorpay script if not already loaded
+                        if (!window.Razorpay) {
+                            const script = document.createElement('script');
+                            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                            document.body.appendChild(script);
+                            await new Promise(resolve => script.onload = resolve);
+                        }
+
+                        // Open Razorpay checkout
+                        const options = {
+                            key: orderData.key_id,
+                            amount: orderData.amount,
+                            currency: orderData.currency,
+                            name: 'HRC AI',
+                            description: `${orderData.plan.name} Plan Subscription`,
+                            order_id: orderData.order_id,
+                            prefill: {
+                                email: formData.email,
+                                contact: formData.phone
+                            },
+                            theme: { color: '#8B5CF6' },
+                            handler: async function (response) {
+                                // Verify payment
+                                const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        plan: formData.subscription_plan
+                                    })
+                                });
+
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success) {
+                                    setSuccess("Payment successful! Redirecting to login...");
+                                    setTimeout(() => onSwitchToLogin(), 1500);
+                                } else {
+                                    setError("Payment verification failed. Please contact support.");
+                                }
+                            },
+                            modal: {
+                                ondismiss: function () {
+                                    setSuccess("Account created! You can upgrade later from settings.");
+                                    setTimeout(() => onSwitchToLogin(), 2000);
+                                }
+                            }
+                        };
+
+                        const rzp = new window.Razorpay(options);
+                        rzp.open();
+                    } else {
+                        setError(orderData.error || "Failed to create payment order");
+                        setTimeout(() => onSwitchToLogin(), 2000);
+                    }
+                } catch (paymentError) {
+                    console.error('Payment error:', paymentError);
+                    setSuccess("Account created! Payment setup failed - you can upgrade later.");
+                    setTimeout(() => onSwitchToLogin(), 2000);
+                }
             } else {
                 setSuccess("Account created successfully! Redirecting...");
                 setTimeout(() => {

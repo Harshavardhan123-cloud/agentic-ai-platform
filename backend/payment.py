@@ -5,21 +5,33 @@ Handles order creation, payment verification, and subscription management
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-import razorpay
 import os
 import hmac
 import hashlib
+import time
 
 # Create Blueprint
 payment_bp = Blueprint('payment', __name__)
 
+# Lazily import razorpay to avoid import-time issues
+_razorpay_client = None
+
 # Razorpay client (initialized with env variables)
 def get_razorpay_client():
+    global _razorpay_client
     key_id = os.getenv("RAZORPAY_KEY_ID", "")
     key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
     if not key_id or not key_secret:
         return None
-    return razorpay.Client(auth=(key_id, key_secret))
+    # Lazily create and cache the client
+    if _razorpay_client is None:
+        try:
+            import razorpay
+            _razorpay_client = razorpay.Client(auth=(key_id, key_secret))
+        except Exception as e:
+            print(f"Failed to create Razorpay client: {e}")
+            return None
+    return _razorpay_client
 
 # Subscription Plans with pricing (in paise - 1 INR = 100 paise)
 PLANS = {
@@ -161,7 +173,6 @@ def create_guest_order():
         plan = PLANS[plan_id]
         
         # Create Razorpay order for guest
-        import time
         order_data = {
             "amount": plan["price"],  # Amount in paise
             "currency": "INR",
